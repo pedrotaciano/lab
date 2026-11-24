@@ -172,6 +172,26 @@ export class Laboratorio {
 			idleTimeout: 120,
 			routes: {
 				"/": pagina,
+				"/l/:lab": (req: Request) =>
+					new Response(null, { status: 302, headers: { location: `${new URL(req.url).pathname}/` } }),
+				"/l/:lab/*": pagina,
+				"/l/:lab/api/*": (req: Request, server: Server<DadosSocket>) => {
+					const id = (req as Bun.BunRequest<"/l/:lab">).params.lab;
+					const caminho = new URL(req.url).pathname.replace(/^\/l\/[^/]+/, "");
+					const autor = this.#autorDe(req, server);
+					if (id === ID_ENTRADA) return proxiarHttp(req, this.url!, caminho, autor);
+					const lab = this.#laboratorios.lab(id);
+					if (!lab) return Response.json({ erro: "laboratório não encontrado" }, { status: 404 });
+					const url = lab.url;
+					if (!url) return Response.json({ erro: lab.motivo ?? "conectando" }, { status: 502 });
+					return proxiarHttp(req, url, caminho, autor);
+				},
+				"/l/:lab/ws": (req: Request, server: Server<DadosSocket>) => {
+					const id = (req as Bun.BunRequest<"/l/:lab/ws">).params.lab;
+					if (!this.#laboratorios.conhece(id))
+						return Response.json({ erro: "laboratório não encontrado" }, { status: 404 });
+					return abrirWs(req, server, id === ID_ENTRADA ? null : id);
+				},
 				"/arte/*": (req: Request) => arte(new URL(req.url).pathname),
 				"/api/laboratorios": { GET: api(() => this.laboratorios()) },
 				"/api/laboratorios/:id/tentar": {

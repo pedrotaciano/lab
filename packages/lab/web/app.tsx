@@ -182,6 +182,14 @@ function App(): ReactNode {
 		</button>
 	);
 
+	const troca = varios && labs && (
+		<TrocaLab
+			labs={labs}
+			vivo={!quieto}
+			agora={quieto ? null : { trabalhando: estado.chats.filter(c => c.status === "trabalhando").length, esperando }}
+		/>
+	);
+
 	return (
 		<LabContexto.Provider value={lab}>
 			{celular ? (

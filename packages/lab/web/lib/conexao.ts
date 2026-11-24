@@ -1,6 +1,15 @@
-// The page's line to the lab: /ws with reconnection (backoff 0.5 s → 10 s). Keeps the last
-// Estado while offline (and since when), one ReplicaChat per subscribed chat, and the voice frames.
-import type { Estado, LivePhase, LiveTranscricao, MensagemCliente, MensagemServidor } from "../tipos";
+// The page's line to its lab: `/ws` (or `/l/<id>/ws` through the entry lab) with reconnection
+// (backoff 0.5 s → 10 s). Keeps the last Estado while offline (and since when), one ReplicaChat per
+// subscribed chat, the voice frames and the entry lab's list of laboratórios.
+import type {
+	Estado,
+	LivePhase,
+	LiveTranscricao,
+	MensagemCliente,
+	MensagemServidor,
+	ResumoLaboratorio,
+} from "../tipos";
+import { guardarEstado, guardarLaboratorios, laboratoriosGuardados, noLab } from "./laboratorio";
 import { ReplicaChat } from "./replica";
 
 export interface FotoConexao {
