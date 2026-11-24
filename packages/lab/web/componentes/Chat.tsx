@@ -99,6 +99,11 @@ export function Chat({ chat, estado, celular }: Props): ReactNode {
 				return <Autoria rosto={<Rosto semente={semente} foto={autor?.foto} tamanho="p" />} nome={nome} outro />;
 			},
 			thinking: "pensando…",
+			reasoning: "pensamento",
+			redacted: " · oculto",
+			redactedBody: "(oculto pelo provedor)",
+			stopReason: motivo => (motivo === "error" ? "erro" : "interrompida"),
+			stopMessage: mensagem => (mensagem === "Interrupted by user" ? "Parada por você" : mensagem),
 			empty: "",
 			earlier: count => `mais ${count} acima`,
 		}),
@@ -177,7 +182,8 @@ export function Chat({ chat, estado, celular }: Props): ReactNode {
 							stream={foto.stream}
 							streamDone={foto.streamDone}
 							activeTools={foto.activeTools}
-							working={foto.working}
+							/* A pending question waits for you: no "pensando…" under its card. */
+							working={foto.working && foto.pergunta === null}
 						/>
 					)}
 				</TranscriptLabelsContext.Provider>

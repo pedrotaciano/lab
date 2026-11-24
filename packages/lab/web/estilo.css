@@ -1269,7 +1269,7 @@ html.is-noite .moldura {
 	color: var(--mudo);
 	font: 9px/12px var(--mono);
 	letter-spacing: 0.04em;
-	text-overflow: ellipsis;
+	text-overflow: clip;
 	text-transform: uppercase;
 	white-space: nowrap;
 }
@@ -1590,7 +1590,7 @@ html.is-noite .moldura {
 
 .pergunta__pe {
 	display: flex;
-	align-items: center;
+	align-items: baseline;
 	justify-content: space-between;
 	gap: 12px;
 }

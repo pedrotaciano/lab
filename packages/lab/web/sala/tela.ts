@@ -1,5 +1,6 @@
 // The screen every drawing module paints on: the canvas's context, where the room's origin is on
-// it (org, CSS px), the pitch P (CSS px per art pixel), the clock (tick), and dot(), one art pixel.
+// it (org, CSS px), the pitch P (CSS px per art pixel), the device pixels per CSS px (dpr), the
+// clock (tick), and dot(), one art pixel.
 // The scene (cena.ts) sets these before each frame; the other modules only read them.
 // Ported from the POC (laboratorio/web/sala/tela.js).
 
@@ -10,6 +11,7 @@ export interface Tela {
 	tick: number;
 	/** The clock a table's things run on: the tick at a working table, frozen (0) at an idle one. */
 	tk: number;
+	dpr: number;
 }
 
 export const T: Tela = {
@@ -18,6 +20,7 @@ export const T: Tela = {
 	P: 3,
 	tick: 0,
 	tk: 0,
+	dpr: 1,
 };
 
 const reducedQuery = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
@@ -27,9 +30,15 @@ export const aoMudarMovimento = (fn: () => void): (() => void) => {
 	return () => reducedQuery?.removeEventListener("change", fn);
 };
 
+/** One art pixel, its edges on device pixels (a quarter-step pitch leaves no seams or blur). */
 export function dot(c: number, r: number, colour: string): void {
+	const { org, P, dpr } = T;
+	const x0 = Math.round((org[0] + c * P) * dpr);
+	const y0 = Math.round((org[1] + r * P) * dpr);
+	const x1 = Math.round((org[0] + (c + 1) * P) * dpr);
+	const y1 = Math.round((org[1] + (r + 1) * P) * dpr);
 	T.ctx.fillStyle = colour;
-	T.ctx.fillRect(T.org[0] + c * T.P, T.org[1] + r * T.P, T.P, T.P);
+	T.ctx.fillRect(x0 / dpr, y0 / dpr, (x1 - x0) / dpr, (y1 - y0) / dpr);
 }
 
 /** A stable 32-bit hash of a string (FNV-1a), for everything deterministic per chat. */

@@ -14,14 +14,9 @@ import type {
 	RpcPromptResultFrame,
 	RpcSessionState,
 } from "@oh-my-pi/pi-coding-agent/modes/rpc/rpc-types";
-import {
-	defaultFormData,
-	fieldError,
-	fieldQuestions,
-	type HtmlFormData,
-} from "@oh-my-pi/pi-coding-agent/tools/html-form/data";
-import { parseHtmlForm, spansText } from "@oh-my-pi/pi-coding-agent/tools/html-form/parse";
-import type { TodoPhase, TodoToolDetails } from "@oh-my-pi/pi-coding-agent/tools/details/todo";
+import type { TodoPhase } from "@oh-my-pi/pi-coding-agent/modes/rpc/wire/rpc-wire.generated";
+import { defaultFormData, fieldError, fieldQuestions, type HtmlFormData } from "@oh-my-pi/pi-tui/html-form/data";
+import { parseHtmlForm, spansText } from "@oh-my-pi/pi-tui/html-form/parse";
 import { type ChildProcess, isRecord, logger, ptree, readJsonl } from "@oh-my-pi/pi-utils";
 import type { RegistroChat } from "./store";
 import type { LabUiRequest, ResumoChat, StatusChat, Time, TodoResumo } from "./tipos";
@@ -516,11 +511,10 @@ export class ChatProcess {
 				break;
 			case "tool_execution_end":
 				if (frame.toolName === "todo" && frame.isError !== true) {
-					const details = isRecord(frame.result)
-						? (frame.result.details as TodoToolDetails | undefined)
-						: undefined;
-					if (details && details.op !== "view" && Array.isArray(details.phases))
-						this.#todo = resumoTodo(details.phases);
+					// The todo tool's `details` ({op, phases}); `view` reads without changing the list.
+					const details = isRecord(frame.result) ? frame.result.details : undefined;
+					if (isRecord(details) && details.op !== "view" && Array.isArray(details.phases))
+						this.#todo = resumoTodo(details.phases as TodoPhase[]);
 				}
 				if (this.#trabalhando()) this.#atividade = "pensando";
 				this.#mudou();

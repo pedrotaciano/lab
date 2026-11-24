@@ -326,10 +326,11 @@ export class Laboratorio {
 	async #removerTime(id: string): Promise<void> {
 		if (!this.#store.time(id)) throw new ErroLab(404, "time não encontrado");
 		const chats = this.#store.chats.filter(chat => chat.timeId === id).map(chat => chat.id);
-		await Promise.all(chats.map(chatId => this.#fecharChat(chatId)));
+		// Forget the records first: estado() pairs every stored chat with its live process.
 		this.#store.removerTime(id);
 		this.#ausentes.delete(id);
 		this.#agendarEstado();
+		await Promise.all(chats.map(chatId => this.#fecharChat(chatId)));
 	}
 
 	async #criarChat(dados: Record<string, unknown>, autor: Autor): Promise<ResumoChat> {
@@ -352,9 +353,10 @@ export class Laboratorio {
 	}
 
 	async #removerChat(id: string): Promise<void> {
-		await this.#fecharChat(id);
+		// Forget the record first: estado() pairs every stored chat with its live process.
 		this.#store.removerChat(id);
 		this.#agendarEstado();
+		await this.#fecharChat(id);
 	}
 
 	async #fecharChat(id: string): Promise<void> {

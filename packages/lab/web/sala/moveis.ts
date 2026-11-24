@@ -34,11 +34,12 @@ const FRAME: Record<Pose, (f: number) => number> = {
 export function figure(who: Boneco, look: Look): void {
 	const sheet = sheetOf(look);
 	const f = FRAME[who.pose](who.frame);
-	const { ctx, org, P } = T;
-	const w = 16 * P * MINI;
-	const h = 32 * P * MINI;
-	const x = org[0] + Math.round(who.x) * P - w / 2;
-	const y = org[1] + (Math.round(who.y) + SIT) * P - h;
+	const { ctx, org, P, dpr } = T;
+	// In device pixels, whole: the sprite's size and its feet's place (any pitch).
+	const w = Math.round(16 * P * MINI * dpr) / dpr;
+	const h = Math.round(32 * P * MINI * dpr) / dpr;
+	const x = Math.round((org[0] + Math.round(who.x) * P) * dpr - (w * dpr) / 2) / dpr;
+	const y = Math.round((org[1] + (Math.round(who.y) + SIT) * P) * dpr) / dpr - h;
 	ctx.save();
 	if (who.apagado) ctx.globalAlpha = 0.55;
 	if (who.view === "left") {

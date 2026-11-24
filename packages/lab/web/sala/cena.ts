@@ -226,22 +226,28 @@ export class Sala {
 		this.#W = W;
 		this.#H = H;
 		this.#dpr = Math.min(2, devicePixelRatio || 1);
-		// A whole number of device pixels per art pixel: the most that fits, up to 5 CSS px.
 		const dpr = this.#dpr;
-		const cabe = Math.floor(Math.min(W / (RW + 8), H / (RH + 8)) * dpr);
-		const Pd = Math.max(1, Math.min(Math.floor(5 * dpr), cabe));
+		T.dpr = dpr;
+		// The pitch in device pixels: the most whole ones per art pixel that fit (up to 5 CSS px),
+		// so every art pixel is the same square. Under 2 (a 1× screen with a narrow area) the
+		// quarter step that fits, never under 1: the edges still land on device pixels (tela.ts dot).
+		const cabe = Math.min((W * dpr) / RW, (H * dpr) / RH);
+		let Pd = Math.min(Math.floor(5 * dpr), Math.floor(cabe));
+		if (Pd < 2) Pd = Math.max(1, Math.floor(cabe * 4) / 4);
 		T.P = Pd / dpr;
 		T.org = [Math.round(((W - RW * T.P) / 2) * dpr) / dpr, Math.round(((H - RH * T.P) / 2) * dpr) / dpr];
 		this.#canvas.width = Math.round(W * dpr);
 		this.#canvas.height = Math.round(H * dpr);
-		if (Pd !== this.#feitoPara) {
-			this.#feitoPara = Pd;
+		// The static room, painted at the whole pitch at or above it and drawn down to it unsmoothed.
+		const pintado = Math.ceil(Pd);
+		if (pintado !== this.#feitoPara) {
+			this.#feitoPara = pintado;
 			for (const cv of [this.#floor, this.#room]) {
-				cv.width = RW * Pd;
-				cv.height = RH * Pd;
+				cv.width = RW * pintado;
+				cv.height = RH * pintado;
 			}
-			drawFloor(this.#floor, Pd);
-			drawRoom(this.#room, Pd);
+			drawFloor(this.#floor, pintado);
+			drawRoom(this.#room, pintado);
 		}
 		this.#draw();
 	}

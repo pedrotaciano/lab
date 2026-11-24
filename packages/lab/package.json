@@ -20,6 +20,7 @@
   "dependencies": {
     "@oh-my-pi/collab-web": "workspace:*",
     "@oh-my-pi/pi-coding-agent": "catalog:",
+    "@oh-my-pi/pi-tui": "catalog:",
     "@oh-my-pi/pi-utils": "catalog:",
     "@oh-my-pi/pi-wire": "catalog:",
     "katex": "catalog:",

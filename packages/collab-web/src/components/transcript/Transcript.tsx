@@ -65,14 +65,16 @@ function Row({
 }
 
 function ThinkingBlock({ text, redacted }: { text: string; redacted?: boolean }): ReactNode {
+	const labels = useContext(TranscriptLabelsContext);
 	const [open, setOpen] = useState(false);
 	return (
 		<div className="tr-think">
 			<button type="button" className="tr-think-head" onClick={() => setOpen(v => !v)}>
 				<ChevronRight size={11} className={`tr-chev${open ? " tr-chev--open" : ""}`} />
-				thinking{redacted ? " · redacted" : ""}
+				{labels.reasoning}
+				{redacted ? labels.redacted : ""}
 			</button>
-			{open && <div className="tr-think-body">{redacted ? "(redacted by provider)" : text}</div>}
+			{open && <div className="tr-think-body">{redacted ? labels.redactedBody : text}</div>}
 		</div>
 	);
 }
@@ -147,6 +149,7 @@ function AssistantBody({
 				return null;
 		}
 	});
+	const labels = useContext(TranscriptLabelsContext);
 	const stop = message.stopReason;
 	const failed = !pending && (stop === "error" || stop === "aborted");
 	return (
@@ -154,9 +157,11 @@ function AssistantBody({
 			{blocks}
 			{failed && (
 				<div className="tr-stop">
-					<span className={`tr-chip ${stop === "error" ? "tr-chip--err" : "tr-chip--warn"}`}>{stop}</span>
+					<span className={`tr-chip ${stop === "error" ? "tr-chip--err" : "tr-chip--warn"}`}>
+						{labels.stopReason(stop)}
+					</span>
 					{message.errorMessage !== undefined && message.errorMessage.length > 0 && (
-						<span className="tr-stop-msg">{message.errorMessage}</span>
+						<span className="tr-stop-msg">{labels.stopMessage(message.errorMessage)}</span>
 					)}
 				</div>
 			)}
@@ -191,6 +196,13 @@ export interface TranscriptLabels {
 	/** Gutter of a `collab-prompt` message, by its `details.from`. */
 	from(name: string): ReactNode;
 	thinking: ReactNode;
+	/** Head of a folded reasoning block, and its redacted suffix and body. */
+	reasoning: ReactNode;
+	redacted: ReactNode;
+	redactedBody: ReactNode;
+	/** Chip of a failed or aborted assistant message, and its error text. */
+	stopReason(reason: "error" | "aborted"): ReactNode;
+	stopMessage(message: string): ReactNode;
 	empty: ReactNode;
 	earlier(count: number): ReactNode;
 }
@@ -200,6 +212,11 @@ export const TranscriptLabelsContext = createContext<TranscriptLabels>({
 	agent: "agent",
 	from: name => <span className="tr-badge">{name}</span>,
 	thinking: "thinking…",
+	reasoning: "thinking",
+	redacted: " · redacted",
+	redactedBody: "(redacted by provider)",
+	stopReason: reason => reason,
+	stopMessage: message => message,
 	empty: "no activity yet",
 	earlier: count => `show ${count.toLocaleString("en-US")} earlier`,
 });
