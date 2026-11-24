@@ -14,6 +14,7 @@ import { type EnviarFrame, PonteChat } from "./frames";
 import { detectarEgregore, MemoriaEgregore } from "./memoria";
 import { type RegistroChat, Store } from "./store";
 import type { Autor, Estado, MensagemCliente, MensagemServidor, ResumoChat, Time } from "./tipos";
+import { lerLoginDoDono } from "./tailscale";
 import { Transcricao } from "./transcricao";
 
 const WEB = path.resolve(import.meta.dir, "../web");
@@ -46,6 +47,8 @@ export class Laboratorio {
 	readonly #memorias = new Map<string, MemoriaEgregore>();
 	#servidor: Server<DadosSocket> | null = null;
 	#dono: Autor | null = null;
+	/** This Mac's own tailnet login: a visitor through `tailscale serve` with it is the owner. */
+	#loginTailscaleDono: string | null = null;
 	#voz: boolean | null = null;
 	#timerEstado: NodeJS.Timeout | undefined;
 	#ultimoEstado = 0;
@@ -66,8 +69,11 @@ export class Laboratorio {
 		await this.#store.carregar();
 		for (const registro of this.#store.chats) this.#registrarChat(registro);
 		this.#dono = await donoDaMaquina();
-		await this.#verificarPastas();
-		this.#timerPastas = setInterval(() => void this.#verificarPastas(), INTERVALO_PASTAS_MS);
+		await Promise.all([this.#verificarPastas(), this.#verificarTailscale()]);
+		this.#timerPastas = setInterval(() => {
+			void this.#verificarPastas();
+			void this.#verificarTailscale();
+		}, INTERVALO_PASTAS_MS);
 		const pagina = await paginaWeb();
 		let ultimoErro: unknown;
 		for (let porta = opcoes.port; porta < opcoes.port + 20; porta++) {
@@ -343,10 +349,12 @@ export class Laboratorio {
 		}
 		const login = req.headers.get("tailscale-user-login");
 		if (login) {
+			const foto = req.headers.get("tailscale-user-profile-pic") || null;
+			if (login === this.#loginTailscaleDono) return { ...this.#dono!, foto: foto ?? this.#dono!.foto };
 			return {
 				login,
 				nome: req.headers.get("tailscale-user-name") || login,
-				foto: req.headers.get("tailscale-user-profile-pic") || null,
+				foto,
 				tipo: "membro",
 			};
 		}
@@ -380,6 +388,13 @@ export class Laboratorio {
 			mudou = true;
 		}
 		if (mudou) this.#agendarEstado();
+	}
+
+	/** Learn the owner's tailnet login once Tailscale is installed and logged in; it doesn't change after. */
+	async #verificarTailscale(): Promise<void> {
+		if (this.#loginTailscaleDono) return;
+		this.#loginTailscaleDono = await lerLoginDoDono();
+		if (this.#loginTailscaleDono) logger.debug("lab: tailnet owner", { login: this.#loginTailscaleDono });
 	}
 
 	/** Start or stop following the team's Egregore memory; true when the team became or stopped being one. */

@@ -39,7 +39,7 @@ O plugin do Tern fica em [`tern-plugin/`](tern-plugin/README.md): `tern plugin l
 
 ## Celular e outras pessoas
 
-O servidor só escuta em `127.0.0.1`. Para entrar pelo celular, ou para outra pessoa da Orbi entrar, use o Tailscale: `tailscale serve --bg 4300` publica o lab em HTTPS na sua rede (o microfone do navegador exige HTTPS). Cada pedido que chega pelo Tailscale diz quem é a pessoa, e as mensagens dela aparecem com o nome e a foto dela. Quem não está na sua rede do Tailscale não chega ao lab.
+O servidor só escuta em `127.0.0.1`. Para entrar pelo celular, ou para outra pessoa da Orbi entrar, use o Tailscale: `tailscale serve --bg 4300` publica o lab em HTTPS na sua rede (o microfone do navegador exige HTTPS). Cada pedido que chega pelo Tailscale diz quem é a pessoa, e as mensagens dela aparecem com o nome e a foto dela. Quem entra com a mesma conta do Tailscale deste Mac (o seu celular) é o dono, como no próprio Mac: o lab lê essa conta em `tailscale status --json`. Quem não está na sua rede do Tailscale não chega ao lab.
 
 ## Egregore
 
