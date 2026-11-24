@@ -5,7 +5,7 @@ O lab é a sala dos agentes da Orbi, feita dentro de um fork do omp. Cada **time
 ## Rodar
 
 ```sh
-lab                 # liga o servidor e abre http://127.0.0.1:4321 (ou só abre, se já estiver ligado)
+lab                 # liga o servidor e abre http://127.0.0.1:4300 (ou só abre, se já estiver ligado)
 lab --no-abrir      # só o servidor
 lab --port 4400     # outra porta (ocupada: usa a próxima livre)
 ```
@@ -20,7 +20,7 @@ O plugin do Tern fica em [`tern-plugin/`](tern-plugin/README.md): `tern plugin l
 
 ## Celular e outras pessoas
 
-O servidor só escuta em `127.0.0.1`. Para entrar pelo celular, ou para outra pessoa da Orbi entrar, use o Tailscale: `tailscale serve --bg 4321` publica o lab em HTTPS na sua rede (o microfone do navegador exige HTTPS). Cada pedido que chega pelo Tailscale diz quem é a pessoa, e as mensagens dela aparecem com o nome e a foto dela. Quem não está na sua rede do Tailscale não chega ao lab.
+O servidor só escuta em `127.0.0.1`. Para entrar pelo celular, ou para outra pessoa da Orbi entrar, use o Tailscale: `tailscale serve --bg 4300` publica o lab em HTTPS na sua rede (o microfone do navegador exige HTTPS). Cada pedido que chega pelo Tailscale diz quem é a pessoa, e as mensagens dela aparecem com o nome e a foto dela. Quem não está na sua rede do Tailscale não chega ao lab.
 
 ## Fork
 

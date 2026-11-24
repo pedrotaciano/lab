@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * `lab [--port 4321] [--host 127.0.0.1] [--no-abrir]`: one lab server per home
+ * `lab [--port 4300] [--host 127.0.0.1] [--no-abrir]`: one lab server per home
  * (`LAB_CASA`, default `~/.lab`). A second start just points at the running one.
  */
 import * as fs from "node:fs/promises";
@@ -19,7 +19,7 @@ interface RegistroServidor {
 
 const { values } = parseArgs({
 	options: {
-		port: { type: "string", default: "4321" },
+		port: { type: "string", default: "4300" },
 		host: { type: "string", default: "127.0.0.1" },
 		"no-abrir": { type: "boolean", default: false },
 	},

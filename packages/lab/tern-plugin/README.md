@@ -11,7 +11,7 @@ tern plugin list          # lab 0.1.0 Lab — window  ready
 
 Depois de editar `window.luau`: `tern plugin reload lab`. Tipos para o luau-lsp: `tern plugin types packages/lab/tern-plugin` (gera `tern.d.luau`; não versionar).
 
-O plugin acha o servidor em `$LAB_CASA/servidor.json` (padrão `~/.lab/servidor.json`, escrito pelo `lab` ao subir); sem o arquivo, usa `http://127.0.0.1:4321`.
+O plugin acha o servidor em `$LAB_CASA/servidor.json` (padrão `~/.lab/servidor.json`, escrito pelo `lab` ao subir); sem o arquivo, usa `http://127.0.0.1:4300`.
 
 ## O que a Carly faz
 

@@ -3,7 +3,7 @@
 -- e avisa por toast quando um chat passa a esperar você ou termina um turno.
 
 local DESLIGADO = "o lab não está ligado: rode lab"
-local PORTA_PADRAO = 4321
+local PORTA_PADRAO = 4300
 local POLL_MS = 3000
 local POLL_MAX_MS = 30000
 local PEDIDO_MS = 8000
