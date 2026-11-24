@@ -22,14 +22,19 @@ export interface SalaNaTela {
  */
 export function criarSala(canvas: HTMLCanvasElement, opts: OpcoesSala): SalaNaTela {
 	const sala = new Sala(canvas, opts);
-	return { mostrar: (estado) => sala.mostrar(estado), destruir: () => sala.destruir() };
+	return { mostrar: estado => sala.mostrar(estado), destruir: () => sala.destruir() };
 }
 
 /**
  * The face of `semente` (a chat's id, or a person's login) dressed for `papel`: 16 × 20 art px on
  * `canvas` (its width and height are set to that; scale it with CSS, `image-rendering: pixelated`).
  */
-export async function desenharRosto(canvas: HTMLCanvasElement, semente: string, papel: string | null = null, arte = "/arte/"): Promise<void> {
+export async function desenharRosto(
+	canvas: HTMLCanvasElement,
+	semente: string,
+	papel: string | null = null,
+	arte = "/arte/",
+): Promise<void> {
 	await loadArt(arte);
 	canvas.width = 16;
 	canvas.height = 20;

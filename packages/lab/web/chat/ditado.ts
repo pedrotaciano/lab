@@ -44,7 +44,9 @@ export class Gravador {
 		this.#pararLogo = false;
 		let fluxo: MediaStream;
 		try {
-			fluxo = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+			fluxo = await navigator.mediaDevices.getUserMedia({
+				audio: { echoCancellation: true, noiseSuppression: true },
+			});
 		} catch (err) {
 			this.#mudar("ocioso");
 			const nome = err instanceof Error ? err.name : "";

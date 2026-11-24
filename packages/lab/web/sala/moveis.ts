@@ -24,8 +24,8 @@ export interface Boneco {
 
 const ROW: Record<Vista, number> = { down: 0, up: 1, right: 2, left: 2 };
 const FRAME: Record<Pose, (f: number) => number> = {
-	type: (f) => 3 + (f % 2),
-	read: (f) => 5 + (f % 2),
+	type: f => 3 + (f % 2),
+	read: f => 5 + (f % 2),
 	seated: () => 7,
 	stand: () => 1,
 };
@@ -56,7 +56,14 @@ export const ALTO = 32 * MINI;
 // grey edge under it, one post, a round foot. Taken: a little laptop in the middle, its light
 // blinking while someone at it works. Empty: an orange stool behind it (banquinho).
 export const MESA_REDONDA = { rx: 12, ry: 4, dy: 4 };
-function elipse(cx: number, cy: number, rx: number, ry: number, cor: string, bordaDe: (c: number, r: number) => string): void {
+function elipse(
+	cx: number,
+	cy: number,
+	rx: number,
+	ry: number,
+	cor: string,
+	bordaDe: (c: number, r: number) => string,
+): void {
 	const dentro = (c: number, r: number) => (c / (rx + 0.5)) ** 2 + (r / (ry + 0.5)) ** 2 <= 1;
 	for (let r = -ry; r <= ry; r++) {
 		for (let c = -rx; c <= rx; c++) {
@@ -76,7 +83,9 @@ export function mesaRedonda(s: { x: number; y: number }, ocupada: boolean, traba
 	elipse(s.x, cy + 10, 5, 1, C.G, () => C.k);
 	elipse(s.x, cy + 2, rx, ry, C.g, () => C.k);
 	// The top's rim: dark against the floor, a soft grey where the edge shows under it.
-	elipse(s.x, cy, rx, ry, C.W, (c, r) => (r > 0 && (c / (rx + 0.5)) ** 2 + ((r - 1) / (ry + 0.5)) ** 2 <= 1 ? C.G : C.k));
+	elipse(s.x, cy, rx, ry, C.W, (c, r) =>
+		r > 0 && (c / (rx + 0.5)) ** 2 + ((r - 1) / (ry + 0.5)) ** 2 <= 1 ? C.G : C.k,
+	);
 	if (!ocupada) return;
 	const lx = s.x - 3;
 	const ly = cy - 3;
@@ -92,12 +101,70 @@ export function banquinho(x: number, y: number): void {
 
 // A 9 × 7 pixel bubble with an icon: what someone is doing, at a glance, at any pitch.
 const ICONS = {
-	dots: [[2, 3], [4, 3], [6, 3]],
-	x: [[2, 1], [6, 1], [3, 2], [5, 2], [4, 3], [3, 4], [5, 4], [2, 5], [6, 5]],
-	edit: [[6, 1], [7, 2], [5, 2], [6, 3], [4, 3], [5, 4], [3, 4], [2, 5]],
-	run: [[2, 1], [3, 2], [4, 3], [3, 4], [2, 5], [5, 5], [6, 5], [7, 5]],
-	read: [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3], [2, 5], [3, 5], [4, 5]],
-	search: [[3, 1], [4, 1], [2, 2], [5, 2], [2, 3], [5, 3], [3, 4], [4, 4], [5, 4], [6, 5]],
+	dots: [
+		[2, 3],
+		[4, 3],
+		[6, 3],
+	],
+	x: [
+		[2, 1],
+		[6, 1],
+		[3, 2],
+		[5, 2],
+		[4, 3],
+		[3, 4],
+		[5, 4],
+		[2, 5],
+		[6, 5],
+	],
+	edit: [
+		[6, 1],
+		[7, 2],
+		[5, 2],
+		[6, 3],
+		[4, 3],
+		[5, 4],
+		[3, 4],
+		[2, 5],
+	],
+	run: [
+		[2, 1],
+		[3, 2],
+		[4, 3],
+		[3, 4],
+		[2, 5],
+		[5, 5],
+		[6, 5],
+		[7, 5],
+	],
+	read: [
+		[2, 1],
+		[3, 1],
+		[4, 1],
+		[5, 1],
+		[6, 1],
+		[2, 3],
+		[3, 3],
+		[4, 3],
+		[5, 3],
+		[6, 3],
+		[7, 3],
+		[2, 5],
+		[3, 5],
+		[4, 5],
+	],
+	search: [
+		[3, 1],
+		[4, 1],
+		[2, 2],
+		[5, 2],
+		[2, 3],
+		[5, 3],
+		[3, 4],
+		[4, 4],
+		[5, 4],
+		[6, 5],
+	],
 } satisfies Record<string, [number, number][]>;
 export type Icone = keyof typeof ICONS;
 export const LARGURA_BALAO = 9;
@@ -121,7 +188,8 @@ export function marca(x: number, y: number): void {
 	const bob = reduced() ? 0 : (T.tick >> 3) % 2;
 	const top = y - 9 - bob;
 	for (let r = 0; r < 9; r++) {
-		for (let c = 0; c < 5; c++) if (!((r === 0 || r === 8) && (c === 0 || c === 4))) dot(x - 2 + c, top + r, r === 8 ? C.o : C.O);
+		for (let c = 0; c < 5; c++)
+			if (!((r === 0 || r === 8) && (c === 0 || c === 4))) dot(x - 2 + c, top + r, r === 8 ? C.o : C.O);
 	}
 	for (const r of [1, 2, 3, 4, 6]) dot(x, top + r, C.W);
 }

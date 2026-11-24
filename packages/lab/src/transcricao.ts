@@ -248,7 +248,10 @@ export class Transcricao {
 			codigo => {
 				const erro = processo.peekStderr();
 				if (codigo) {
-					logger.warn("lab: whisper exited", { code: codigo, stderr: erro.trim().split("\n").slice(-3).join(" | ") });
+					logger.warn("lab: whisper exited", {
+						code: codigo,
+						stderr: erro.trim().split("\n").slice(-3).join(" | "),
+					});
 				}
 				if (/No solution found|offline|not found in the cache/i.test(erro)) {
 					fim(new ErroLab(503, `O ${mt.pacote} não está no cache do uv.`));
@@ -294,7 +297,7 @@ export function limparTranscricao(texto: string): string {
 		for (let j = 0; j < n; j++) if (!chaves[a + j] || chaves[a + j] !== chaves[b + j]) return false;
 		return !palavras[b - 1]!.endsWith(","); // a list said with commas is speech
 	};
-	for (let i = 0; i < palavras.length; ) {
+	for (let i = 0; i < palavras.length;) {
 		let cortou = false;
 		for (let n = 1; n <= MAX_FRASE && !cortou; n++) {
 			let k = 1;

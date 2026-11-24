@@ -40,9 +40,10 @@ let transcricao: Promise<EstadoTranscricao> | null = null;
 
 /** Whether this lab can transcribe the microphone (asked once per page). */
 export function estadoTranscricao(): Promise<EstadoTranscricao> {
-	transcricao ??= api<EstadoTranscricao>("GET", "/api/transcricao").catch(
-		(): EstadoTranscricao => ({ disponivel: false, motivo: "Transcrição indisponível." }),
-	);
+	transcricao ??= api<EstadoTranscricao>("GET", "/api/transcricao").catch((): EstadoTranscricao => ({
+		disponivel: false,
+		motivo: "Transcrição indisponível.",
+	}));
 	return transcricao;
 }
 
@@ -194,7 +195,8 @@ export class CaixaChat {
 				resposta = await api<{ texto: string }>("POST", "/api/transcrever", corpo);
 			} catch (err) {
 				// The worker went away under the request (idle timer, restart): the next one takes the same audio.
-				if (!(err instanceof Error && "status" in err && err.status === 503 && /parou/.test(err.message))) throw err;
+				if (!(err instanceof Error && "status" in err && err.status === 503 && /parou/.test(err.message)))
+					throw err;
 				resposta = await api<{ texto: string }>("POST", "/api/transcrever", corpo);
 			}
 			if (chip.descartado) return null;

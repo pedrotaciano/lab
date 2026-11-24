@@ -4,7 +4,19 @@
 // the POC's scene (laboratorio/web/sala/cena.js), cut to what the lab shows.
 import type { Estado, ResumoChat, StatusChat, Time } from "../tipos";
 import { A, loadArt, sortear } from "./arte";
-import { ALTO, banquinho, bubble, figure, type Icone, MESA_REDONDA, marca, mesaRedonda, type Pose, SIT, type Vista } from "./moveis";
+import {
+	ALTO,
+	banquinho,
+	bubble,
+	figure,
+	type Icone,
+	MESA_REDONDA,
+	marca,
+	mesaRedonda,
+	type Pose,
+	SIT,
+	type Vista,
+} from "./moveis";
 import { horaReal, type Luz, luz } from "./noite";
 import { CENTER, drawFloor, drawRoom, lugaresDaOrbi, type Lugar, mesaDe, RH, RW } from "./planta";
 import { type Look, vestir } from "./roupa";
@@ -73,7 +85,7 @@ export function iconeDe(atividade: string | null): Icone {
 function quemSenta(chats: ResumoChat[]): ResumoChat[] {
 	if (chats.length <= NA_MESA) return chats;
 	const vez = [...chats].sort((a, b) => URGENCIA[b.status] - URGENCIA[a.status]).slice(0, NA_MESA);
-	return chats.filter((c) => vez.includes(c));
+	return chats.filter(c => vez.includes(c));
 }
 
 /**
@@ -83,8 +95,10 @@ function quemSenta(chats: ResumoChat[]): ResumoChat[] {
  */
 function rodaDe(s: Lugar, n: number, mesas: Lugar[]): [number, number, Vista][] {
 	const raio = (lado: number) => {
-		const vizinhas = mesas.filter((o) => o !== s && Math.abs(o.y - s.y) < 2 * RODA.ry + 18 && Math.sign(o.x - s.x) === lado);
-		return Math.max(8, Math.min(RODA.rx, ...vizinhas.map((o) => (Math.abs(o.x - s.x) - VAO) / 2)));
+		const vizinhas = mesas.filter(
+			o => o !== s && Math.abs(o.y - s.y) < 2 * RODA.ry + 18 && Math.sign(o.x - s.x) === lado,
+		);
+		return Math.max(8, Math.min(RODA.rx, ...vizinhas.map(o => (Math.abs(o.x - s.x) - VAO) / 2)));
 	};
 	const rx = { [-1]: raio(-1), 1: raio(1) } as Record<number, number>;
 	const de = n % 2 ? 0 : Math.PI / n;
@@ -94,7 +108,8 @@ function rodaDe(s: Lugar, n: number, mesas: Lugar[]): [number, number, Vista][] 
 		const x = s.x + (lado ? lado * rx[lado] * Math.abs(Math.sin(a)) : 0);
 		const y = s.y + RODA.dy - RODA.ry * Math.cos(a);
 		const graus = Math.round((a * 180) / Math.PI) % 360;
-		const view: Vista = graus < 60 || graus > 300 ? "down" : graus > 120 && graus < 240 ? "up" : lado < 0 ? "right" : "left";
+		const view: Vista =
+			graus < 60 || graus > 300 ? "down" : graus > 120 && graus < 240 ? "up" : lado < 0 ? "right" : "left";
 		return [Math.round(x), Math.round(y), view];
 	});
 }
@@ -133,12 +148,16 @@ export class Sala {
 		if (!canvas.hasAttribute("aria-label")) canvas.setAttribute("aria-label", "Sala");
 		this.#observer = new ResizeObserver(() => this.#layout());
 		this.#observer.observe(canvas);
-		const ouvir = <K extends keyof HTMLElementEventMap>(alvo: HTMLElement, tipo: K, fn: (e: HTMLElementEventMap[K]) => void) => {
+		const ouvir = <K extends keyof HTMLElementEventMap>(
+			alvo: HTMLElement,
+			tipo: K,
+			fn: (e: HTMLElementEventMap[K]) => void,
+		) => {
 			alvo.addEventListener(tipo, fn);
 			this.#desligar.push(() => alvo.removeEventListener(tipo, fn));
 		};
-		ouvir(canvas, "click", (e) => this.#clique(e.offsetX, e.offsetY));
-		ouvir(canvas, "pointermove", (e) => this.#mover(e.offsetX, e.offsetY));
+		ouvir(canvas, "click", e => this.#clique(e.offsetX, e.offsetY));
+		ouvir(canvas, "pointermove", e => this.#mover(e.offsetX, e.offsetY));
 		ouvir(canvas, "pointerleave", () => this.#mover(-1, -1));
 		const visivel = () => this.#animar();
 		document.addEventListener("visibilitychange", visivel);
@@ -200,7 +219,7 @@ export class Sala {
 		const vistos = new Set<string>();
 		this.#mesas = times.map((time, i) => {
 			const lugar = ocupados[i];
-			const doTime = chats.filter((c) => c.timeId === time.id);
+			const doTime = chats.filter(c => c.timeId === time.id);
 			const sentam = quemSenta(doTime);
 			const roda = rodaDe(lugar, sentam.length, ocupados);
 			const figuras = sentam.map((chat, j): Figura => {
@@ -211,11 +230,15 @@ export class Sala {
 				const pose: Pose = !trabalha ? "seated" : icone === "read" || icone === "search" ? "read" : "type";
 				return { chat, look: this.#lookDe(chat), x, y, view, pose, icone };
 			});
-			const status = doTime.reduce<StatusChat | null>((m, c) => (m === null || URGENCIA[c.status] > URGENCIA[m] ? c.status : m), null);
+			const status = doTime.reduce<StatusChat | null>(
+				(m, c) => (m === null || URGENCIA[c.status] > URGENCIA[m] ? c.status : m),
+				null,
+			);
 			return { time, lugar, figuras, mais: doTime.length - sentam.length, status };
 		});
 		for (const k of this.#looks.keys()) if (!vistos.has(k)) this.#looks.delete(k);
-		if (this.#hover) this.#hover = this.#mesas.flatMap((m) => m.figuras).find((f) => f.chat.id === this.#hover?.chat.id) ?? null;
+		if (this.#hover)
+			this.#hover = this.#mesas.flatMap(m => m.figuras).find(f => f.chat.id === this.#hover?.chat.id) ?? null;
 	}
 
 	// ── Layout ────────────────────────────────────────────────────────────────────────────
@@ -258,7 +281,7 @@ export class Sala {
 			this.#vivo &&
 			!document.hidden &&
 			!reduced() &&
-			!!this.#estado?.chats.some((c) => c.status === "trabalhando" || c.status === "esperando");
+			!!this.#estado?.chats.some(c => c.status === "trabalhando" || c.status === "esperando");
 		if (mexe && !this.#passo) {
 			this.#passo = window.setInterval(() => {
 				T.tick++;
@@ -297,7 +320,7 @@ export class Sala {
 		const luzes: Luz[] = [];
 		for (const m of this.#mesas) {
 			const s = m.lugar;
-			const trabalhando = m.figuras.some((f) => f.chat.status === "trabalhando");
+			const trabalhando = m.figuras.some(f => f.chat.status === "trabalhando");
 			if (!m.time) items.push({ z: s.y - 0.5, fn: () => banquinho(s.x, s.y) });
 			items.push({
 				z: s.y + MESA_REDONDA.dy,
@@ -311,7 +334,11 @@ export class Sala {
 			for (const f of m.figuras) {
 				items.push({
 					z: f.y,
-					fn: () => figure({ x: f.x, y: f.y, view: f.view, pose: f.pose, frame, apagado: f.chat.status === "parado" }, f.look),
+					fn: () =>
+						figure(
+							{ x: f.x, y: f.y, view: f.view, pose: f.pose, frame, apagado: f.chat.status === "parado" },
+							f.look,
+						),
 				});
 			}
 		}
@@ -328,17 +355,31 @@ export class Sala {
 			const y = Math.round(org[1] + (s.y + RODA.dy + RODA.ry + SIT + 1) * P);
 			const cx = Math.round(org[0] + s.x * P);
 			const rotulo = m.time
-				? this.#etiquetaSemCruzar(m.time.nome, cx, y, m.status ? PONTO[m.status] : PONTO.parado, rotulos.map((r) => r.caixa))
+				? this.#etiquetaSemCruzar(
+						m.time.nome,
+						cx,
+						y,
+						m.status ? PONTO[m.status] : PONTO.parado,
+						rotulos.map(r => r.caixa),
+					)
 				: this.#botao("Adicionar time", cx, y);
 			rotulos.push(rotulo);
-			const mesa: Caixa = { l: org[0] + (s.x - 14) * P, t: org[1] + (s.y - 2) * P, r: org[0] + (s.x + 14) * P, b: org[1] + (s.y + 16) * P };
+			const mesa: Caixa = {
+				l: org[0] + (s.x - 14) * P,
+				t: org[1] + (s.y - 2) * P,
+				r: org[0] + (s.x + 14) * P,
+				b: org[1] + (s.y + 16) * P,
+			};
 			this.#alvosMesas.push({ mesa: m, caixa: rotulo.caixa }, { mesa: m, caixa: mesa });
 			if (m.mais) {
 				const fora = s.x < CENTER[0] ? -1 : 1;
 				const cx = Math.round(org[0] + (s.x + fora * (RODA.rx + 10)) * P);
 				const base = Math.round(org[1] + (s.y + 10) * P);
 				const mais = `+${m.mais}`;
-				rotulos.push({ caixa: { l: cx - 12, t: base - 14, r: cx + 12, b: base - 1 }, pintar: () => this.#pilula(mais, cx, base) });
+				rotulos.push({
+					caixa: { l: cx - 12, t: base - 14, r: cx + 12, b: base - 1 },
+					pintar: () => this.#pilula(mais, cx, base),
+				});
 			}
 		}
 
@@ -348,18 +389,28 @@ export class Sala {
 		const figurasNaTela: { fig: Figura; caixa: Caixa }[] = [];
 		this.#topos.clear();
 		if (A.ready) {
-			const todas = this.#mesas.flatMap((m) => m.figuras);
-			const ocupado: Caixa[] = todas.map((f) => {
+			const todas = this.#mesas.flatMap(m => m.figuras);
+			const ocupado: Caixa[] = todas.map(f => {
 				const cabeca = f.y + SIT - ALTO;
 				return { l: f.x - 4, t: cabeca + 1, r: f.x + 4, b: cabeca + 10 };
 			});
-			const nomes = rotulos.map(({ caixa: b }) => ({ l: (b.l - org[0]) / P, t: (b.t - org[1]) / P, r: (b.r - org[0]) / P, b: (b.b - org[1]) / P }));
-			const livre = (c: Caixa, de: Caixa[]) => !de.some((o) => o.l < c.r && c.l < o.r && o.t < c.b && c.t < o.b);
+			const nomes = rotulos.map(({ caixa: b }) => ({
+				l: (b.l - org[0]) / P,
+				t: (b.t - org[1]) / P,
+				r: (b.r - org[0]) / P,
+				b: (b.b - org[1]) / P,
+			}));
+			const livre = (c: Caixa, de: Caixa[]) => !de.some(o => o.l < c.r && c.l < o.r && o.t < c.b && c.t < o.b);
 			for (const f of [...todas].sort((a, b) => a.y - b.y)) {
 				const cabeca = f.y + SIT - ALTO;
 				figurasNaTela.push({
 					fig: f,
-					caixa: { l: org[0] + (f.x - 6) * P, t: org[1] + (cabeca - 1) * P, r: org[0] + (f.x + 6) * P, b: org[1] + (f.y + SIT + 1) * P },
+					caixa: {
+						l: org[0] + (f.x - 6) * P,
+						t: org[1] + (cabeca - 1) * P,
+						r: org[0] + (f.x + 6) * P,
+						b: org[1] + (f.y + SIT + 1) * P,
+					},
 				});
 				const espera = f.chat.status === "esperando";
 				if (!espera && !f.icone) continue;
@@ -369,7 +420,8 @@ export class Sala {
 					return { l, t: cabeca - h + dy, r: l + w, b: cabeca + dy };
 				};
 				const tentativas: [number, number, Caixa[]][] = [];
-				for (const dy of [0, -4]) for (const dx of [0, -5, 5, -9, 9]) tentativas.push([dx, dy, [...ocupado, ...nomes]]);
+				for (const dy of [0, -4])
+					for (const dx of [0, -5, 5, -9, 9]) tentativas.push([dx, dy, [...ocupado, ...nomes]]);
 				for (const dy of [0, -4]) for (const dx of [0, -5, 5]) tentativas.push([dx, dy, ocupado]);
 				const [dx, dy] = tentativas.find(([x, y, de]) => livre(em(x, y), de)) ?? [0, 0];
 				ocupado.push(em(dx, dy));
@@ -424,7 +476,7 @@ export class Sala {
 		for (const max of [160, 120, 92, 70]) {
 			m = this.#medir(texto, max);
 			const l = Math.round(cx - m.w / 2);
-			if (!ocupado.some((o) => cruza(o, { l, t: y, r: l + m.w, b: y + 16 }))) break;
+			if (!ocupado.some(o => cruza(o, { l, t: y, r: l + m.w, b: y + 16 }))) break;
 		}
 		const l = Math.round(cx - m.w / 2);
 		return { caixa: { l, t: y, r: l + m.w, b: y + 16 }, pintar: () => this.#pintar(m, l, y, ponto) };
@@ -465,22 +517,28 @@ export class Sala {
 
 	// ── Input ─────────────────────────────────────────────────────────────────────────────
 	#figuraEm(x: number, y: number): Figura | null {
-		return this.#alvosFiguras.find((a) => dentro(a.caixa, x, y))?.fig ?? null;
+		return this.#alvosFiguras.find(a => dentro(a.caixa, x, y))?.fig ?? null;
 	}
 	#clique(x: number, y: number): void {
 		const f = this.#figuraEm(x, y);
 		if (f) return this.#opts.aoClicar(f.chat.id);
-		const m = this.#alvosMesas.find((a) => dentro(a.caixa, x, y))?.mesa;
+		const m = this.#alvosMesas.find(a => dentro(a.caixa, x, y))?.mesa;
 		if (!m) return;
 		if (m.time) this.#opts.aoClicarMesa?.(m.time.id);
 		else this.#opts.aoAdicionarTime?.();
 	}
 	#mover(x: number, y: number): void {
 		const f = this.#figuraEm(x, y);
-		const mesa = !f && this.#alvosMesas.find((a) => dentro(a.caixa, x, y))?.mesa;
+		const mesa = !f && this.#alvosMesas.find(a => dentro(a.caixa, x, y))?.mesa;
 		const clicavel = f || (mesa && (mesa.time ? this.#opts.aoClicarMesa : this.#opts.aoAdicionarTime));
 		this.#canvas.style.cursor = clicavel ? "pointer" : "";
-		this.#canvas.title = f ? (f.chat.atividade ? `${f.chat.nome} · ${f.chat.atividade}` : f.chat.nome) : mesa && mesa.time ? `${mesa.time.nome}\n${mesa.time.pasta}` : "";
+		this.#canvas.title = f
+			? f.chat.atividade
+				? `${f.chat.nome} · ${f.chat.atividade}`
+				: f.chat.nome
+			: mesa && mesa.time
+				? `${mesa.time.nome}\n${mesa.time.pasta}`
+				: "";
 		if (f === this.#hover) return;
 		this.#hover = f;
 		this.#draw();

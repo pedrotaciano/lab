@@ -17,7 +17,16 @@ export const NIVEIS: Record<string, string> = {
 const CICLO = ["auto", "low", "medium", "high", "max"] as const;
 
 /** How many of the four pixels each selector lights. */
-export const ACESAS: Record<string, number> = { auto: 0, off: 0, minimal: 1, low: 1, medium: 2, high: 3, xhigh: 3, max: 4 };
+export const ACESAS: Record<string, number> = {
+	auto: 0,
+	off: 0,
+	minimal: 1,
+	low: 1,
+	medium: 2,
+	high: 3,
+	xhigh: 3,
+	max: 4,
+};
 /** Selectors from least to most effort, to find the next one up. */
 const ORDEM = ["auto", "minimal", "low", "medium", "high", "xhigh", "max"];
 
@@ -42,7 +51,8 @@ function nomeDoId(id: string): string {
 	const saida: string[] = [];
 	for (const parte of base.split(/[-_\s]+/).filter(Boolean)) {
 		const anterior = saida.at(-1);
-		if (/^\d+$/.test(parte) && anterior && /^\d+(\.\d+)*$/.test(anterior)) saida[saida.length - 1] = `${anterior}.${parte}`;
+		if (/^\d+$/.test(parte) && anterior && /^\d+(\.\d+)*$/.test(anterior))
+			saida[saida.length - 1] = `${anterior}.${parte}`;
 		else if (/^(gpt|glm|o\d)$/i.test(parte)) saida.push(parte.toUpperCase());
 		else saida.push(/^\d/.test(parte) ? parte : parte.charAt(0).toUpperCase() + parte.slice(1));
 	}
@@ -62,7 +72,12 @@ export function mil(n: number): string {
 
 export function dolares(n: number): string {
 	return n
-		.toLocaleString("pt-BR", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 })
+		.toLocaleString("pt-BR", {
+			style: "currency",
+			currency: "USD",
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		})
 		.replace(/\s/g, " ");
 }
 

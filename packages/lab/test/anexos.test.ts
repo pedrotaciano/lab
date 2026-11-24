@@ -17,7 +17,10 @@ describe("the attachment block, read back for the page", () => {
 	test("the words stay, images leave (their thumbnail shows), other files by name", async () => {
 		const a = await anexos();
 		const imagem = await a.receber("c1", { nome: "tela.png", dados: PNG });
-		const pdf = await a.receber("c1", { nome: "relatório (final).pdf", dados: Buffer.from("%PDF").toString("base64") });
+		const pdf = await a.receber("c1", {
+			nome: "relatório (final).pdf",
+			dados: Buffer.from("%PDF").toString("base64"),
+		});
 		const { texto, imagens } = await a.mensagem("c1", "Olha isso", [imagem.id, pdf.id], "Pedro Taciano");
 		expect(texto).toContain("[Anexos de Pedro Taciano]");
 		expect(imagens).toHaveLength(1);
@@ -46,7 +49,11 @@ describe("the attachment block, read back for the page", () => {
 			id: "e1",
 			parentId: null,
 			timestamp: new Date().toISOString(),
-			message: { role: "user" as const, content: [{ type: "text" as const, text: texto }, ...imagens], timestamp: 0 },
+			message: {
+				role: "user" as const,
+				content: [{ type: "text" as const, text: texto }, ...imagens],
+				timestamp: 0,
+			},
 		};
 		const tela = entradaParaTela(entry);
 		expect(tela.type === "message" && tela.message.content).toEqual([{ type: "text", text: "veja" }, ...imagens]);

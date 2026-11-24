@@ -24,7 +24,15 @@ interface Guarda {
 	palettes: Record<string, Paleta>;
 }
 interface Trajes {
-	pecas: { cat: string; id: string; nome: string; src: string; tema?: boolean; ocultaAcima?: number[]; cores?: string }[];
+	pecas: {
+		cat: string;
+		id: string;
+		nome: string;
+		src: string;
+		tema?: boolean;
+		ocultaAcima?: number[];
+		cores?: string;
+	}[];
 	peles?: { label: string; hex: string; valor: Tom }[];
 	conjuntos: { id: string; nome: string; look: Look }[];
 }
@@ -73,7 +81,11 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
 	const d = max - min;
 	const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 	const h =
-		max === rf ? ((gf - bf) / d + (gf < bf ? 6 : 0)) * 60 : max === gf ? ((bf - rf) / d + 2) * 60 : ((rf - gf) / d + 4) * 60;
+		max === rf
+			? ((gf - bf) / d + (gf < bf ? 6 : 0)) * 60
+			: max === gf
+				? ((bf - rf) / d + 2) * 60
+				: ((rf - gf) / d + 4) * 60;
 	return [h, s, l];
 }
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
@@ -89,8 +101,8 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 	};
 	return [Math.round(f(h + 1 / 3) * 255), Math.round(f(h) * 255), Math.round(f(h - 1 / 3) * 255)];
 }
-const hex = (r: number, g: number, b: number) => `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
-const rgbOf = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
+const hex = (r: number, g: number, b: number) => `#${[r, g, b].map(v => v.toString(16).padStart(2, "0")).join("")}`;
+const rgbOf = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
 
 /** Recolour an RGBA buffer: the named exact swap first, then the HSL shifts (or colorize). */
 function tint(src: Uint8ClampedArray, cv: Tom, swaps?: Peca["swaps"]): Uint8ClampedArray<ArrayBuffer> {
@@ -143,7 +155,12 @@ const LAYERS: [string, keyof Look | null, keyof Look | null][] = [
 	["shades", "oculos", "corOculos"],
 	["hat", "chapeu", "corChapeu"],
 ];
-const DEFAULT_COLOUR: Record<string, string> = { body: "Light", hair: "Side-swept", beard: "Side-swept", shades: "Black" };
+const DEFAULT_COLOUR: Record<string, string> = {
+	body: "Light",
+	hair: "Side-swept",
+	beard: "Side-swept",
+	shades: "Black",
+};
 const NEUTRO: Tom = { h: 0, s: 0, b: 0, c: 0 };
 
 function colourOf(w: Guarda, cat: string, id: string, label: string | null | undefined): Tom {
@@ -151,8 +168,8 @@ function colourOf(w: Guarda, cat: string, id: string, label: string | null | und
 	const pal = w.palettes[cat];
 	const values = pal?.values?.[id];
 	if (!values) return NEUTRO;
-	let k = pal.squares.findIndex((s) => s.label === label);
-	if (k < 0) k = pal.squares.findIndex((s) => s.label === (DEFAULT_COLOUR[cat] || "White"));
+	let k = pal.squares.findIndex(s => s.label === label);
+	if (k < 0) k = pal.squares.findIndex(s => s.label === (DEFAULT_COLOUR[cat] || "White"));
 	return values[Math.max(0, k)] || NEUTRO;
 }
 
@@ -190,16 +207,20 @@ export function loadArt(base: string): Promise<void> {
 	carregando ??= (async () => {
 		const pa = `${base}pixel-agents/personagens/`;
 		const [wardrobe, extra] = await Promise.all([
-			fetch(`${pa}wardrobe.json`).then((r) => r.json() as Promise<Guarda>),
+			fetch(`${pa}wardrobe.json`).then(r => r.json() as Promise<Guarda>),
 			fetch(`${base}orbi-trajes/trajes.json`)
-				.then((r) => r.json() as Promise<Trajes>)
+				.then(r => r.json() as Promise<Trajes>)
 				.catch((): Trajes => ({ pecas: [], conjuntos: [] })),
 		]);
 		juntar(wardrobe, extra, base);
 		const lista: [string, string][] = [];
-		for (const cat of CATS) for (const part of wardrobe.parts[cat]) lista.push([`${cat}/${part.id}`, part.src || `${pa}${cat}/${part.id}.png`]);
+		for (const cat of CATS)
+			for (const part of wardrobe.parts[cat])
+				lista.push([`${cat}/${part.id}`, part.src || `${pa}${cat}/${part.id}.png`]);
 		for (const piece of ["whites", "iris.bottom"]) lista.push([`eyes/${piece}`, `${pa}eyes/${piece}.png`]);
-		await Promise.allSettled(lista.map(([chave, arquivo]) => load(arquivo).then((img) => A.pieces.set(chave, pixelsOf(img)))));
+		await Promise.allSettled(
+			lista.map(([chave, arquivo]) => load(arquivo).then(img => A.pieces.set(chave, pixelsOf(img)))),
+		);
 		A.ready = true;
 	})().catch((e: unknown) => {
 		carregando = null;
@@ -252,7 +273,7 @@ export function sheetOf(look: Look): Folha {
 			const id = field ? look[field] : null;
 			const art = id ? A.pieces.get(`${cat}/${id}`) : undefined;
 			if (!id || !art) continue;
-			const part = w.parts[cat].find((p) => p.id === id);
+			const part = w.parts[cat].find(p => p.id === id);
 			// A fitted hat hides the layers above its brim, frame by frame.
 			if (part?.ocultaAcima) {
 				for (let q = 0; q < 24; q++) {
@@ -307,12 +328,21 @@ export function sortear(id: string): Look {
 		return h % n;
 	};
 	const one = <V>(list: V[]): V => list[next(list.length)];
-	const ids = (cat: string) => w.parts[cat].filter((p) => !p.tema).map((p) => p.id);
-	const cores = (cat: string) => w.palettes[cat].squares.filter((s) => !s.tema).map((s) => s.label);
+	const ids = (cat: string) => w.parts[cat].filter(p => !p.tema).map(p => p.id);
+	const cores = (cat: string) => w.palettes[cat].squares.filter(s => !s.tema).map(s => s.label);
 	const cabelos = cores("hair");
-	const NATURAIS = ["Long waves", "Shoulder-length", "Side-swept", "Long", "Spiky", "Short", "Mop", "Bowl cut", "Black", "White"].filter((c) =>
-		cabelos.includes(c),
-	);
+	const NATURAIS = [
+		"Long waves",
+		"Shoulder-length",
+		"Side-swept",
+		"Long",
+		"Spiky",
+		"Short",
+		"Mop",
+		"Bowl cut",
+		"Black",
+		"White",
+	].filter(c => cabelos.includes(c));
 	const look: Look = {
 		corpo: one(ids("body")),
 		pele: one(cores("body")),

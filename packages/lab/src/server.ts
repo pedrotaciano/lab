@@ -227,7 +227,9 @@ export class Laboratorio {
 						const { dados, tipo } = await corpo(req);
 						if (typeof dados !== "string" || !dados) throw new ErroLab(400, "mande o áudio em `dados` (base64)");
 						const audio = Buffer.from(dados, "base64");
-						return { texto: await this.#transcricao.transcrever(audio, typeof tipo === "string" ? tipo : "audio/webm") };
+						return {
+							texto: await this.#transcricao.transcrever(audio, typeof tipo === "string" ? tipo : "audio/webm"),
+						};
 					}),
 				},
 				"/api/chats/:id/parar": {

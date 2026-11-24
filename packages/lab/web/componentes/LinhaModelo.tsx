@@ -198,7 +198,12 @@ export function LinhaModelo({ chatId, controles, livre, travada, andamento, entr
 					>
 						<span className="contexto__pixels" aria-hidden="true">
 							{Array.from({ length: PIXELS_CONTEXTO }, (_, k) => (
-								<i key={k} className={fracao !== null && k < Math.ceil(fracao * PIXELS_CONTEXTO) ? "is-acesa" : undefined} />
+								<i
+									key={k}
+									className={
+										fracao !== null && k < Math.ceil(fracao * PIXELS_CONTEXTO) ? "is-acesa" : undefined
+									}
+								/>
 							))}
 						</span>
 						{(c.compactando || cheio) && (
@@ -339,7 +344,13 @@ function SeletorModelo({ chatId, controles, aoEscolher, aoEsforco, aoFechar, aoE
 					}}
 				/>
 			</label>
-			<ul className="seletor-modelo__lista" id="seletor-modelo-lista" role="listbox" aria-label="Modelos" ref={listaRef}>
+			<ul
+				className="seletor-modelo__lista"
+				id="seletor-modelo-lista"
+				role="listbox"
+				aria-label="Modelos"
+				ref={listaRef}
+			>
 				{linhas.map((m, k) => (
 					<li
 						key={`${m.provider}/${m.id}`}
@@ -361,7 +372,9 @@ function SeletorModelo({ chatId, controles, aoEscolher, aoEsforco, aoFechar, aoE
 					</li>
 				))}
 				{linhas.length === 0 && (
-					<li className="seletor-modelo__vazio">{modelos ? "Nenhum modelo com esse nome." : "Carregando modelos…"}</li>
+					<li className="seletor-modelo__vazio">
+						{modelos ? "Nenhum modelo com esse nome." : "Carregando modelos…"}
+					</li>
 				)}
 			</ul>
 			<p className="seletor-modelo__detalhe">{detalhe}</p>
@@ -461,7 +474,12 @@ function PainelContexto({ chatId, controles, livre, entries, aoFechar, aoErro }:
 				/>
 			</label>
 			<div className="contexto-painel__acoes">
-				<button type="button" className="contexto-painel__compactar" disabled={!pode} onClick={() => void compactar()}>
+				<button
+					type="button"
+					className="contexto-painel__compactar"
+					disabled={!pode}
+					onClick={() => void compactar()}
+				>
 					{compactando ? "Compactando…" : "Compactar agora"}
 				</button>
 				{motivo && (
@@ -514,5 +532,7 @@ function Fogo(): ReactNode {
 		const timer = setInterval(passo, 80);
 		return () => clearInterval(timer);
 	}, []);
-	return <canvas ref={ref} className="linha-modelo__fogo" width={LARGURA_FOGO} height={ALTURA_FOGO} aria-hidden="true" />;
+	return (
+		<canvas ref={ref} className="linha-modelo__fogo" width={LARGURA_FOGO} height={ALTURA_FOGO} aria-hidden="true" />
+	);
 }

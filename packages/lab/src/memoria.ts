@@ -12,14 +12,7 @@ import type { VcsGitRepo } from "@oh-my-pi/pi-natives";
 import * as vcs from "@oh-my-pi/pi-natives/vcs";
 import { isEnoent, logger, parseFrontmatter, ptree } from "@oh-my-pi/pi-utils";
 import { ErroLab } from "./chat";
-import type {
-	EgregoreTime,
-	ItemMemoria,
-	MemoriaTime,
-	SecaoMemoria,
-	SecaoMemoriaId,
-	SincroniaMemoria,
-} from "./tipos";
+import type { EgregoreTime, ItemMemoria, MemoriaTime, SecaoMemoria, SecaoMemoriaId, SincroniaMemoria } from "./tipos";
 
 /** Sections in the page's order: where Egregore writes each kind of record. */
 const SECOES: readonly { id: SecaoMemoriaId; nome: string; pasta: string }[] = [
@@ -124,7 +117,12 @@ export class MemoriaEgregore {
 	/** (Re)check that `memory/` is here; watch it while it is. */
 	async verificar(): Promise<void> {
 		const raiz = await fsp.realpath(this.info.memoria).catch(() => null);
-		const ehPasta = raiz ? await fsp.stat(raiz).then(s => s.isDirectory(), () => false) : false;
+		const ehPasta = raiz
+			? await fsp.stat(raiz).then(
+					s => s.isDirectory(),
+					() => false,
+				)
+			: false;
 		const nova = ehPasta ? raiz : null;
 		if (nova === this.#raiz) return;
 		this.#vigia?.close();
@@ -419,7 +417,11 @@ function resumir(texto: string, caminho: string): Omit<Leitura, "mtimeMs" | "siz
 	const { frontmatter, body } = parseFrontmatter(texto, { level: "off", rawKeys: true });
 	const campo = (nome: string): string | null => {
 		const valor = frontmatter[nome];
-		return typeof valor === "string" && valor.trim() ? valor.trim() : valor instanceof Date ? valor.toISOString() : null;
+		return typeof valor === "string" && valor.trim()
+			? valor.trim()
+			: valor instanceof Date
+				? valor.toISOString()
+				: null;
 	};
 	let titulo = campo("title") ?? campo("topic");
 	let primeiraLinha = "";

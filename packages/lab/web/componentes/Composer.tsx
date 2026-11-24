@@ -150,7 +150,8 @@ export function Composer({ chat, trabalhando, andamento, entries, aoEnviar, aoPa
 					return;
 				}
 			}
-			if (!event.ctrlKey || event.key.toLowerCase() !== "m" || event.shiftKey || event.metaKey || event.altKey) return;
+			if (!event.ctrlKey || event.key.toLowerCase() !== "m" || event.shiftKey || event.metaKey || event.altKey)
+				return;
 			if (!form?.isConnected || mic?.disponivel !== true) return;
 			event.preventDefault();
 			if (!event.repeat) apertar(null);
@@ -320,20 +321,26 @@ export function Composer({ chat, trabalhando, andamento, entries, aoEnviar, aoPa
 						const campo = e.currentTarget;
 						const semMod = !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey;
 						const navegando = caixa.navegando !== null;
-						if (e.key === "ArrowUp" && semMod && (caixa.texto === "" || navegando) && campo.selectionStart === 0) {
+						if (
+							e.key === "ArrowUp" &&
+							semMod &&
+							(caixa.texto === "" || navegando) &&
+							campo.selectionStart === 0
+						) {
 							if (caixa.andarNoHistorico(-1)) e.preventDefault();
-						} else if (e.key === "ArrowDown" && semMod && navegando && campo.selectionEnd === campo.value.length) {
+						} else if (
+							e.key === "ArrowDown" &&
+							semMod &&
+							navegando &&
+							campo.selectionEnd === campo.value.length
+						) {
 							if (caixa.andarNoHistorico(1)) e.preventDefault();
 						}
 					}}
 				/>
 				{caixa.anexos.length > 0 && <Bandeja itens={caixa.anexos} aoTirar={item => caixa.tirar(item)} />}
 				{ouvindo && (
-					<div
-						ref={barraRef}
-						className={`chat__gravando${segurando ? " is-segurando" : ""}`}
-						data-estado={fase}
-					>
+					<div ref={barraRef} className={`chat__gravando${segurando ? " is-segurando" : ""}`} data-estado={fase}>
 						<span className="chat__gravando-ponto" aria-hidden="true" />
 						<span ref={relogioRef} className="chat__gravando-texto" aria-hidden="true">
 							{fase === "pedindo" ? "Pedindo o microfone…" : "0:00"}

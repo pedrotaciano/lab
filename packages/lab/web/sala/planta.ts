@@ -37,9 +37,14 @@ function mesaEm(graus: number, { rx, ry }: { rx: number; ry: number }): Lugar {
 // `n` tables on a ring's two sides (the extra one on the right), from its top left clockwise.
 function anelDeMesas(n: number, anel: typeof DENTRO): Lugar[] {
 	const lado = (m: number, de: number) =>
-		Array.from({ length: m }, (_, j) => de + anel.vao + (m === 1 ? 90 - anel.vao : ((180 - 2 * anel.vao) * j) / (m - 1)));
-	const graus = [...lado(Math.ceil(n / 2), 270), ...lado(Math.floor(n / 2), 90)].map((g) => (g <= 180 ? g + 360 : g)).sort((a, b) => a - b);
-	return graus.map((g) => mesaEm(g, anel));
+		Array.from(
+			{ length: m },
+			(_, j) => de + anel.vao + (m === 1 ? 90 - anel.vao : ((180 - 2 * anel.vao) * j) / (m - 1)),
+		);
+	const graus = [...lado(Math.ceil(n / 2), 270), ...lado(Math.floor(n / 2), 90)]
+		.map(g => (g <= 180 ? g + 360 : g))
+		.sort((a, b) => a - b);
+	return graus.map(g => mesaEm(g, anel));
 }
 /**
  * Over MESAS_REDONDAS, a grid on the floor: rows of tables inside it, each row centred, as wide
@@ -60,7 +65,8 @@ function grade(n: number): Lugar[] {
 }
 /** The tables for `times` teams: the three-table ring up to POUCOS_TIMES, the sixteen on two rings up to MESAS_REDONDAS, else a grid. */
 export function lugaresDaOrbi(times: number): Lugar[] {
-	if (times <= POUCOS_TIMES) return [270, 390, 510].map((g) => mesaEm(g, { rx: 90, ry: 44 })).concat(anelDeMesas(10, FORA));
+	if (times <= POUCOS_TIMES)
+		return [270, 390, 510].map(g => mesaEm(g, { rx: 90, ry: 44 })).concat(anelDeMesas(10, FORA));
 	if (times > MESAS_REDONDAS) return grade(times);
 	return [...anelDeMesas(NA_RODA_DE_DENTRO, DENTRO), ...anelDeMesas(MESAS_REDONDAS - NA_RODA_DE_DENTRO, FORA)];
 }
@@ -74,7 +80,9 @@ export function mesaDe(i: number, n: number): number {
 	if (n > MESAS_REDONDAS) return i;
 	const espalhar = (j: number, m: number, de: number) => Math.round((j * de) / m) % de;
 	if (i < NA_RODA_DE_DENTRO) return espalhar(i, Math.min(n, NA_RODA_DE_DENTRO), NA_RODA_DE_DENTRO);
-	return NA_RODA_DE_DENTRO + espalhar(i - NA_RODA_DE_DENTRO, n - NA_RODA_DE_DENTRO, MESAS_REDONDAS - NA_RODA_DE_DENTRO);
+	return (
+		NA_RODA_DE_DENTRO + espalhar(i - NA_RODA_DE_DENTRO, n - NA_RODA_DE_DENTRO, MESAS_REDONDAS - NA_RODA_DE_DENTRO)
+	);
 }
 
 // A colour moved by a fixed step per channel: the floor's seams and light, the wall's shades.
@@ -120,7 +128,7 @@ export function drawFloor(target: HTMLCanvasElement, s: number): void {
 			const dy = (r - FLOOR.cy) / FLOOR.ry;
 			const d = Math.hypot(dx, dy);
 			const angle = Math.atan2(dy, dx) / (Math.PI / 6);
-			const ring = [0.36, 0.7].some((k) => Math.abs(d - k) < 0.008);
+			const ring = [0.36, 0.7].some(k => Math.abs(d - k) < 0.008);
 			const spoke = d > 0.36 && Math.abs(angle - Math.round(angle)) * d * 40 < 0.5;
 			grid[r * RW + c] = ring || spoke ? seam : GLASS;
 		}
@@ -156,7 +164,7 @@ function booksOf(a: number, b: number, shelf: number): (Livro | null)[] {
 	if (pronta) return pronta;
 	const row: (Livro | null)[] = Array.from({ length: b - a }, () => null);
 	let n = a * 3 + shelf * 7;
-	for (let i = 1; i < b - a; ) {
+	for (let i = 1; i < b - a;) {
 		n = (n * 37 + 11) % 101;
 		if (n % 9 === 0) {
 			i += 2; // a gap
@@ -202,7 +210,15 @@ export function drawRoom(target: HTMLCanvasElement, s: number): void {
 				put(
 					c,
 					r,
-					fromBase === 1 ? C.G : fromBase === 2 ? C.g : fromBase === 7 || fromBase === 8 ? C.O : (c - FLOOR.cx) % 24 === 0 ? C.g : face,
+					fromBase === 1
+						? C.G
+						: fromBase === 2
+							? C.g
+							: fromBase === 7 || fromBase === 8
+								? C.O
+								: (c - FLOOR.cx) % 24 === 0
+									? C.g
+									: face,
 				);
 		}
 		for (let r = top - WALL - 4; r < top - WALL; r++) put(c, r, r === top - WALL - 4 ? C.G : C.W);
@@ -232,7 +248,24 @@ export function drawRoom(target: HTMLCanvasElement, s: number): void {
 			);
 		}
 	}
-	const bolinha = [[-1, -2], [0, -2], [1, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [2, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1]];
+	const bolinha = [
+		[-1, -2],
+		[0, -2],
+		[1, -2],
+		[-2, -1],
+		[-1, -1],
+		[0, -1],
+		[1, -1],
+		[2, -1],
+		[-2, 0],
+		[-1, 0],
+		[0, 0],
+		[1, 0],
+		[2, 0],
+		[-1, 1],
+		[0, 1],
+		[1, 1],
+	];
 	for (let k = 0; k < 6; k++) {
 		const a = ((-90 + 60 * k) * Math.PI) / 180;
 		const x = Math.round(CENTER[0] + 28 * S * Math.cos(a));

@@ -47,8 +47,7 @@ export function Memoria({ estado, celular }: { estado: Estado; celular: boolean 
 	const egregores = estado.times.filter(time => time.egregore);
 	const doChat = estado.chats.find(chat => chat.id === chatAberto)?.timeId;
 	const [escolhido, setEscolhido] = useState<string | null>(null);
-	const time =
-		egregores.find(t => t.id === escolhido) ?? egregores.find(t => t.id === doChat) ?? egregores[0] ?? null;
+	const time = egregores.find(t => t.id === escolhido) ?? egregores.find(t => t.id === doChat) ?? egregores[0] ?? null;
 	if (!time) return null;
 	return (
 		<MemoriaDoTime
@@ -216,7 +215,15 @@ function MemoriaDoTime({ time, outros, escolher, celular }: PropsTime): ReactNod
 					/>
 				)}
 			</div>
-			{aberto && <Leitor key={aberto.caminho} timeId={time.id} item={aberto} fechar={() => setAberto(null)} celular={celular} />}
+			{aberto && (
+				<Leitor
+					key={aberto.caminho}
+					timeId={time.id}
+					item={aberto}
+					fechar={() => setAberto(null)}
+					celular={celular}
+				/>
+			)}
 		</div>
 	);
 }
@@ -293,8 +300,7 @@ function Secoes({ memoria, consulta, limpar, novos, aberto, abrir }: PropsSecoes
 	const [abertas, setAbertas] = useState<Partial<Record<SecaoMemoriaId, boolean>>>({});
 	const [todas, setTodas] = useState<Partial<Record<SecaoMemoriaId, boolean>>>({});
 	const nova = useMemo(
-		() =>
-			memoria.secoes.every(secao => !SECOES_DO_TRABALHO.includes(secao.id) || secao.itens.length === 0),
+		() => memoria.secoes.every(secao => !SECOES_DO_TRABALHO.includes(secao.id) || secao.itens.length === 0),
 		[memoria],
 	);
 
@@ -383,7 +389,12 @@ function Secao({ secao, aberta, alternar, todas, verTodas, novos, aberto, abrir 
 					<ul className={`memoria__itens${todas ? " memoria__itens--todas" : ""}`}>
 						{mostrados.map(item => (
 							<li key={item.caminho}>
-								<Item item={item} novo={novos.has(item.caminho)} aberto={item.caminho === aberto} abrir={abrir} />
+								<Item
+									item={item}
+									novo={novos.has(item.caminho)}
+									aberto={item.caminho === aberto}
+									abrir={abrir}
+								/>
 							</li>
 						))}
 					</ul>

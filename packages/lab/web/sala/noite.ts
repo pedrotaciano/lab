@@ -47,7 +47,7 @@ const TELA = [120, 175, 255];
 let mapa: HTMLCanvasElement | null = null;
 let mapaChave = "";
 function mapaPara(c: Ceu, luzes: Luz[]): HTMLCanvasElement {
-	const key = `${c.cor}|${c.escuro.toFixed(3)}|${c.luzes.toFixed(3)}|${luzes.map((l) => l.join(",")).join(";")}`;
+	const key = `${c.cor}|${c.escuro.toFixed(3)}|${c.luzes.toFixed(3)}|${luzes.map(l => l.join(",")).join(";")}`;
 	if (mapa && key === mapaChave) return mapa;
 	mapaChave = key;
 	const cv = mapa ?? document.createElement("canvas");
@@ -66,7 +66,13 @@ function mapaPara(c: Ceu, luzes: Luz[]): HTMLCanvasElement {
 	g.fill();
 	const pool = (x: number, y: number, r: number, rgb: number[], a: number) => {
 		const grad = g.createRadialGradient(0, 0, 0, 0, 0, r);
-		for (const [at, k] of [[0, 1], [0.35, 0.7], [0.65, 0.3], [1, 0]]) grad.addColorStop(at, rgba(rgb, a * k));
+		for (const [at, k] of [
+			[0, 1],
+			[0.35, 0.7],
+			[0.65, 0.3],
+			[1, 0],
+		])
+			grad.addColorStop(at, rgba(rgb, a * k));
 		g.setTransform(1, 0, 0, 0.75, x, y);
 		g.fillStyle = grad;
 		g.fillRect(-r, -r, r * 2, r * 2);

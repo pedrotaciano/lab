@@ -429,7 +429,11 @@ export class ChatProcess {
 			esforcos: estado.thinkingLevels ?? [],
 			contexto:
 				uso && uso.contextWindow > 0
-					? { tokens: uso.tokens, janela: uso.contextWindow, pct: Math.round((uso.tokens / uso.contextWindow) * 100) }
+					? {
+							tokens: uso.tokens,
+							janela: uso.contextWindow,
+							pct: Math.round((uso.tokens / uso.contextWindow) * 100),
+						}
 					: null,
 			compactando: this.#compactando || estado.isCompacting,
 		};

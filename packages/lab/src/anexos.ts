@@ -36,7 +36,11 @@ const TIPOS: Array<[RegExp, string]> = [
 ];
 
 export const legivel = (n: number): string =>
-	n < 1024 ? `${n} B` : n < 1024 ** 2 ? `${Math.round(n / 1024)} KB` : `${(n / 1024 ** 2).toFixed(1).replace(/\.0$/, "")} MB`;
+	n < 1024
+		? `${n} B`
+		: n < 1024 ** 2
+			? `${Math.round(n / 1024)} KB`
+			: `${(n / 1024 ** 2).toFixed(1).replace(/\.0$/, "")} MB`;
 
 // What `prompts/anexos.md` renders, read back for the page (test/anexos.test.ts renders the template
 // and checks it reads back): the words, a blank line, `[Anexos de <quem>]`, then one line per file,
@@ -76,7 +80,9 @@ export function textoParaTela(texto: string): string | null {
 export function entradaParaTela(entry: SessionEntry): SessionEntry {
 	if (entry.type === "message" && entry.message.role === "user") {
 		const conteudo = conteudoParaTela(entry.message.content);
-		return conteudo === entry.message.content ? entry : { ...entry, message: { ...entry.message, content: conteudo } };
+		return conteudo === entry.message.content
+			? entry
+			: { ...entry, message: { ...entry.message, content: conteudo } };
 	}
 	if (entry.type === "custom_message") {
 		const conteudo = conteudoParaTela(entry.content);
@@ -123,7 +129,8 @@ export class Anexos {
 				.replace(/^\.+/, "")
 				.trim()
 				.slice(0, 120) || "arquivo";
-		if (typeof corpo.dados !== "string" || !corpo.dados) throw new ErroLab(400, "mande o arquivo em `dados` (base64)");
+		if (typeof corpo.dados !== "string" || !corpo.dados)
+			throw new ErroLab(400, "mande o arquivo em `dados` (base64)");
 		if (!BASE64.test(corpo.dados)) throw new ErroLab(400, "o arquivo em `dados` não é base64");
 		const dados = Buffer.from(corpo.dados, "base64");
 		if (dados.length === 0) throw new ErroLab(400, "O arquivo está vazio.");

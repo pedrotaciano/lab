@@ -3,7 +3,8 @@
 import type { ReactNode } from "react";
 
 export const ICONE = {
-	enviar: "M0 0h1v1h-1zM0 1h3v1h-3zM0 2h5v1h-5zM0 3h7v1h-7zM2 4h7v1h-7zM0 5h7v1h-7zM0 6h5v1h-5zM0 7h3v1h-3zM0 8h1v1h-1z",
+	enviar:
+		"M0 0h1v1h-1zM0 1h3v1h-3zM0 2h5v1h-5zM0 3h7v1h-7zM2 4h7v1h-7zM0 5h7v1h-7zM0 6h5v1h-5zM0 7h3v1h-3zM0 8h1v1h-1z",
 	clipe: "M3 0h3v1h-3zM2 1h1v7h-1zM6 1h1v5h-1zM4 2h1v4h-1zM5 6h1v1h-1zM3 8h2v1h-2z",
 	quadro:
 		"M0 0h9v1h-9zM0 6h9v1h-9zM0 1h1v5h-1zM8 1h1v5h-1zM2 4h1v1h-1zM3 3h1v1h-1zM4 4h1v1h-1zM5 3h1v1h-1zM6 2h1v1h-1zM2 7h1v2h-1zM6 7h1v2h-1z",

@@ -22,7 +22,12 @@ const LARGURAS: ReadonlyArray<readonly [string, number, number]> = [
 ];
 type Ferramenta = "mover" | "caneta" | "retangulo" | "elipse" | "seta" | "linha" | "texto" | "borracha";
 const FERRAMENTAS: ReadonlyArray<readonly [Ferramenta, string, string, string]> = [
-	["mover", "Selecionar e mover", "v", "M1 0h1v8h-1zM2 1h1v6h-1zM3 2h1v4h-1zM4 3h1v3h-1zM5 4h1v1h-1zM4 6h1v2h-1zM5 7h1v2h-1z"],
+	[
+		"mover",
+		"Selecionar e mover",
+		"v",
+		"M1 0h1v8h-1zM2 1h1v6h-1zM3 2h1v4h-1zM4 3h1v3h-1zM5 4h1v1h-1zM4 6h1v2h-1zM5 7h1v2h-1z",
+	],
 	["caneta", "Caneta", "p", "M7 0h2v2h-2zM5 2h2v2h-2zM3 4h2v2h-2zM1 6h2v2h-2zM0 8h1v1h-1z"],
 	["retangulo", "Retângulo", "r", "M0 1h9v1h-9zM0 7h9v1h-9zM0 2h1v5h-1zM8 2h1v5h-1z"],
 	[
@@ -288,8 +293,10 @@ class Quadro {
 	#largura = 0;
 	#selecionado: Elemento | null = null;
 	#gesto: Gesto | null = null;
-	#editando: { original: Extract<Elemento, { tipo: "texto" }> | null; el: Extract<Elemento, { tipo: "texto" }> } | null =
-		null;
+	#editando: {
+		original: Extract<Elemento, { tipo: "texto" }> | null;
+		el: Extract<Elemento, { tipo: "texto" }>;
+	} | null = null;
 	#quadroPedido = 0;
 	aoAdicionar: ((arquivo: File) => boolean) | null = null;
 	foco: Element | null = null;
@@ -577,7 +584,10 @@ class Quadro {
 		} else if (f === "caneta") {
 			this.#gesto = { tipo: "desenho", el: { tipo: "caneta", pontos: [[x, y]], cor: this.#cor, largura, semente } };
 		} else {
-			this.#gesto = { tipo: "desenho", el: { tipo: f, x1: x, y1: y, x2: x, y2: y, cor: this.#cor, largura, semente } };
+			this.#gesto = {
+				tipo: "desenho",
+				el: { tipo: f, x1: x, y1: y, x2: x, y2: y, cor: this.#cor, largura, semente },
+			};
 		}
 		this.#render();
 	}
