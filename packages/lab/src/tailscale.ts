@@ -4,11 +4,11 @@
  * machine's own tailnet user is the owner, not a member.
  */
 import * as fs from "node:fs/promises";
-import { isEnoent, logger } from "@oh-my-pi/pi-utils";
+import { $which, isEnoent, logger } from "@oh-my-pi/pi-utils";
+import { $ } from "bun";
 
 /** The macOS app ships its CLI inside the bundle; Homebrew/Linux put `tailscale` on PATH. */
 const CLI_DO_APP = "/Applications/Tailscale.app/Contents/MacOS/Tailscale";
-const PRAZO_MS = 5_000;
 
 /** `LoginName` of the tailnet user that owns this node, from `tailscale status --json`. */
 export function loginDoDono(status: unknown): string | null {
@@ -20,7 +20,7 @@ export function loginDoDono(status: unknown): string | null {
 }
 
 async function cli(): Promise<string | null> {
-	const noPath = Bun.which("tailscale");
+	const noPath = $which("tailscale");
 	if (noPath) return noPath;
 	try {
 		await fs.access(CLI_DO_APP);
@@ -35,13 +35,9 @@ async function cli(): Promise<string | null> {
 export async function lerLoginDoDono(): Promise<string | null> {
 	const comando = await cli();
 	if (!comando) return null;
-	const processo = Bun.spawn([comando, "status", "--json"], {
-		stdout: "pipe",
-		stderr: "ignore",
-		timeout: PRAZO_MS,
-	});
-	const [saida, codigo] = await Promise.all([new Response(processo.stdout).text(), processo.exited]);
-	if (codigo !== 0) return null;
+	const resultado = await $`${comando} status --json`.quiet().nothrow();
+	if (resultado.exitCode !== 0) return null;
+	const saida = resultado.text();
 	try {
 		return loginDoDono(JSON.parse(saida));
 	} catch (err) {

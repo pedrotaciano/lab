@@ -16,6 +16,7 @@ import { type RegistroChat, Store } from "./store";
 import type { Autor, Estado, MensagemCliente, MensagemServidor, ResumoChat, Time } from "./tipos";
 import { lerLoginDoDono } from "./tailscale";
 import { Transcricao } from "./transcricao";
+import pagina from "../web/index.html";
 
 const WEB = path.resolve(import.meta.dir, "../web");
 const ARTE = path.join(WEB, "arte");
@@ -74,13 +75,12 @@ export class Laboratorio {
 			void this.#verificarPastas();
 			void this.#verificarTailscale();
 		}, INTERVALO_PASTAS_MS);
-		const pagina = await paginaWeb();
 		let ultimoErro: unknown;
 		for (let porta = opcoes.port; porta < opcoes.port + 20; porta++) {
 			// A wildcard listener (`*:port`) does not stop a bind to 127.0.0.1 on macOS, yet takes its connections.
 			if (await alguemOuve(opcoes.host, porta)) continue;
 			try {
-				this.#servidor = this.#servir(opcoes.host, porta, pagina);
+				this.#servidor = this.#servir(opcoes.host, porta);
 				return this.url!;
 			} catch (err) {
 				if (!emUso(err)) throw err;
@@ -118,7 +118,7 @@ export class Laboratorio {
 
 	// ── server ──────────────────────────────────────────────────────────────
 
-	#servir(host: string, port: number, pagina: Bun.HTMLBundle | null): Server<DadosSocket> {
+	#servir(host: string, port: number): Server<DadosSocket> {
 		const api =
 			(handler: (req: Request, autor: Autor, server: Server<DadosSocket>) => Promise<unknown> | unknown) =>
 			async (req: Request, server: Server<DadosSocket>): Promise<Response> => {
@@ -150,7 +150,7 @@ export class Laboratorio {
 			port,
 			idleTimeout: 120,
 			routes: {
-				"/": pagina ?? new Response("Not Found", { status: 404 }),
+				"/": pagina,
 				"/arte/*": (req: Request) => arte(new URL(req.url).pathname),
 				"/api/estado": { GET: api(() => this.estado()) },
 				"/api/eu": { GET: api((_req, autor) => autor) },
@@ -653,15 +653,6 @@ async function arte(caminhoUrl: string): Promise<Response> {
 	const arquivo = Bun.file(path.join(ARTE, relativo));
 	if (!(await arquivo.exists())) return new Response("Not Found", { status: 404 });
 	return new Response(arquivo);
-}
-
-/** The UI's HTML bundle, when the UI has been built into `web/index.html`. */
-async function paginaWeb(): Promise<Bun.HTMLBundle | null> {
-	const indice = path.join(WEB, "index.html");
-	if (!(await Bun.file(indice).exists())) return null;
-	// The UI is optional (built in another step), so it cannot be a static import.
-	const modulo = (await import(indice)) as { default: Bun.HTMLBundle };
-	return modulo.default;
 }
 
 /** The machine owner: OS login, named by `git config user.name` when set. */

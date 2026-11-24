@@ -12,7 +12,7 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { type ChildProcess, logger, ptree, readLines } from "@oh-my-pi/pi-utils";
+import { $which, type ChildProcess, logger, ptree, readLines } from "@oh-my-pi/pi-utils";
 import { ErroLab } from "./chat";
 import type { EstadoTranscricao } from "./tipos";
 
@@ -139,10 +139,10 @@ export class Transcricao {
 	/** Whether it can run here, and if not, why (the page shows the reason on the microphone). */
 	async estado(): Promise<EstadoTranscricao> {
 		const mt = MOTOR;
-		if (!Bun.which("uvx")) {
+		if (!$which("uvx")) {
 			return { disponivel: false, motivo: MAC ? "Falta o uv (brew install uv)." : "Falta o uv." };
 		}
-		if (mt.ffmpeg && !Bun.which("ffmpeg")) return { disponivel: false, motivo: "Falta o ffmpeg (brew install ffmpeg)." };
+		if (mt.ffmpeg && !$which("ffmpeg")) return { disponivel: false, motivo: "Falta o ffmpeg (brew install ffmpeg)." };
 		for (const repo of [Bun.env.LAB_WHISPER, ...mt.modelos]) {
 			if (repo && (await emCache(repo, mt.pesos))) return { disponivel: true, modelo: repo };
 		}

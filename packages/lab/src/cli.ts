@@ -7,6 +7,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { parseArgs } from "node:util";
 import { isPidAlive } from "@oh-my-pi/pi-utils";
+import { $ } from "bun";
 import { Laboratorio } from "./server";
 import { casaDoLab } from "./store";
 
@@ -37,7 +38,7 @@ const arquivoServidor = path.join(casa, "servidor.json");
 function abrirNoNavegador(url: string): void {
 	if (!abrir) return;
 	const comando = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open";
-	Bun.spawn([comando, url], { stdout: "ignore", stderr: "ignore" }).unref();
+	void $`${comando} ${url}`.quiet().nothrow();
 }
 
 async function servidorVivo(): Promise<RegistroServidor | null> {

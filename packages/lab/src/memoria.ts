@@ -490,7 +490,7 @@ function motivoGit(err: unknown): string {
 }
 
 async function mapearLimitado<T, R>(itens: readonly T[], limite: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-	const resultados = new Array<R>(itens.length);
+	const resultados: R[] = [];
 	let proximo = 0;
 	const trabalhar = async (): Promise<void> => {
 		while (proximo < itens.length) {

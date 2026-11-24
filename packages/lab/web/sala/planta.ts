@@ -112,7 +112,7 @@ function paintGrid(target: HTMLCanvasElement, grid: string[], s: number): void {
 export function drawFloor(target: HTMLCanvasElement, s: number): void {
 	const seam = tom(GLASS, -13, -9, -8);
 	const caustic = tom(GLASS, 18, 12, 10);
-	const grid: string[] = new Array(RW * RH).fill("");
+	const grid: string[] = Array.from({ length: RW * RH }, () => "");
 	for (let r = 0; r < RH; r++) {
 		for (let c = 0; c < RW; c++) {
 			if (!inFloor(c + 0.5, r + 0.5)) continue;
@@ -154,7 +154,7 @@ function booksOf(a: number, b: number, shelf: number): (Livro | null)[] {
 	const key = `${a}:${b}:${shelf}`;
 	const pronta = prateleiras.get(key);
 	if (pronta) return pronta;
-	const row: (Livro | null)[] = new Array(b - a).fill(null);
+	const row: (Livro | null)[] = Array.from({ length: b - a }, () => null);
 	let n = a * 3 + shelf * 7;
 	for (let i = 1; i < b - a; ) {
 		n = (n * 37 + 11) % 101;
@@ -184,7 +184,7 @@ function bookWall(c: number, fromBase: number, [a, b]: [number, number]): string
 /** The wall round the floor, the door, and the rug in the middle. */
 export function drawRoom(target: HTMLCanvasElement, s: number): void {
 	const faces = [PAREDE, tom(PAREDE, -6, -7, -8), tom(PAREDE, -15, -16, -18)];
-	const grid: string[] = new Array(RW * RH).fill("");
+	const grid: string[] = Array.from({ length: RW * RH }, () => "");
 	const put = (c: number, r: number, colour: string) => {
 		if (c >= 0 && c < RW && r >= 0 && r < RH && colour) grid[r * RW + c] = colour;
 	};
