@@ -8,6 +8,8 @@ export interface FotoConexao {
 	online: boolean;
 	/** Epoch ms of the drop, while offline after having been online. */
 	offlineDesde: number | null;
+	/** The entry lab's laboratórios (the last ones seen in this browser until the first frame). */
+	laboratorios: ResumoLaboratorio[] | null;
 }
 
 export interface QuadroVoz {
@@ -19,6 +21,8 @@ export interface QuadroVoz {
 
 const ESPERA_MIN_MS = 500;
 const ESPERA_MAX_MS = 10_000;
+/** The estado kept for when this lab is down is written at most this often. */
+const GUARDAR_MS = 2_000;
 
 export class Conexao {
 	readonly #ouvintes = new Set<() => void>();
@@ -30,8 +34,9 @@ export class Conexao {
 	#ws: WebSocket | null = null;
 	#espera = ESPERA_MIN_MS;
 	#timer: Timer | null = null;
+	#foto: FotoConexao = { estado: null, online: false, offlineDesde: null, laboratorios: laboratoriosGuardados() };
+	#guardar: Timer | null = null;
 	#fechada = false;
-	#foto: FotoConexao = { estado: null, online: false, offlineDesde: null };
 
 	constructor() {
 		this.#abrir();
@@ -102,7 +107,7 @@ export class Conexao {
 
 	#abrir(): void {
 		this.#timer = null;
-		const url = new URL("/ws", location.href);
+		const url = new URL(noLab("/ws"), location.href);
 		url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
 		const ws = new WebSocket(url);
 		this.#ws = ws;
@@ -140,6 +145,16 @@ export class Conexao {
 		switch (mensagem.t) {
 			case "estado":
 				this.#mudar({ estado: mensagem.estado });
+				if (this.#guardar === null) {
+					this.#guardar = setTimeout(() => {
+						this.#guardar = null;
+						if (this.#foto.estado) guardarEstado(this.#foto.estado);
+					}, GUARDAR_MS);
+				}
+				break;
+			case "laboratorios":
+				this.#mudar({ laboratorios: mensagem.laboratorios });
+				guardarLaboratorios(mensagem.laboratorios);
 				break;
 			case "chat":
 				this.#replicas.get(mensagem.chatId)?.aplicar(mensagem.frame);

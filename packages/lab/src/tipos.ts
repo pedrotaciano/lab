@@ -176,6 +176,26 @@ export interface Estado {
 }
 
 /**
+ * - online: its `/api/estado` answers
+ * - conectando: starting it / opening the tunnel, before the first answer
+ * - fora: down; `motivo` says why ("sem túnel", "o lab não responde", "desligado")
+ */
+export type EstadoLaboratorio = "online" | "conectando" | "fora";
+
+/** `GET /api/laboratorios` on the entry lab: itself first, then `laboratorios.json`'s order. */
+export interface ResumoLaboratorio {
+	id: string;
+	nome: string;
+	/** The machine it runs on, a short mono label ("mac", "ec2"). */
+	maquina: string;
+	estado: EstadoLaboratorio;
+	motivo?: string;
+	/** Chats working / waiting for you there, from its last estado (0 while not online). */
+	trabalhando: number;
+	esperando: number;
+}
+
+/**
  * A pending extension UI request as the browser receives it. `select`/`editor`
  * kinds are wire `CollabUiRequest`s (so collab-web's `GuestClient` queues them);
  * `form` (the `ask` tool) carries the raw HTML for the UI to render.
@@ -209,7 +229,9 @@ export type MensagemServidor =
 	| { t: "chat"; chatId: string; frame: LabHostFrame }
 	| { t: "voz"; chatId: string; fase?: LivePhase; transcricao?: LiveTranscricao; fim?: { erro: string | null } }
 	/** An Egregore team's memory (files or sync state) changed: refetch it. */
-	| { t: "memoria"; timeId: string };
+	| { t: "memoria"; timeId: string }
+	/** The entry lab's laboratórios changed (sent also on connect, and over proxied sockets). */
+	| { t: "laboratorios"; laboratorios: ResumoLaboratorio[] };
 
 /** Browser → server WebSocket messages. */
 export type MensagemCliente = { t: "assinar"; chatId: string } | { t: "desassinar"; chatId: string };

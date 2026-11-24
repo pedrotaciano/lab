@@ -4,6 +4,9 @@
  * `packages/natives/native/`. The fork follows upstream release tags, and every tag
  * has its addon on npm (`@oh-my-pi/pi-natives-<platform>-<arch>`), so the fork runs
  * from source without a Rust toolchain. Run after `git merge vX.Y.Z` + `bun install`.
+ * It takes the package of the machine running it: darwin-arm64 on the Mac, linux-x64
+ * (glibc) on the EC2. x64 packages carry a `-modern` (AVX2) and a `-baseline` addon; both
+ * are copied and the loader picks one by the CPU.
  */
 import * as fs from "node:fs/promises";
 import * as os from "node:os";

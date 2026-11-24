@@ -1,4 +1,6 @@
-// The lab server's REST API (src/server.ts): JSON in, JSON out; errors come as `{erro}`.
+// The lab server's REST API (src/server.ts): JSON in, JSON out; errors come as `{erro}`. `api` talks
+// to this page's lab (`/l/<id>/api/…` through the entry lab); `apiDaEntrada` to the entry lab itself.
+import { noLab } from "./laboratorio";
 
 export class ErroApi extends Error {
 	constructor(
@@ -12,7 +14,17 @@ export class ErroApi extends Error {
 
 type Metodo = "GET" | "POST" | "DELETE";
 
-export async function api<T>(metodo: Metodo, caminho: string, corpo?: unknown): Promise<T> {
+/** This page's lab. */
+export function api<T>(metodo: Metodo, caminho: string, corpo?: unknown): Promise<T> {
+	return pedir<T>(metodo, noLab(caminho), corpo);
+}
+
+/** The entry lab (`/api/laboratorios`). */
+export function apiDaEntrada<T>(metodo: Metodo, caminho: string, corpo?: unknown): Promise<T> {
+	return pedir<T>(metodo, caminho, corpo);
+}
+
+async function pedir<T>(metodo: Metodo, caminho: string, corpo?: unknown): Promise<T> {
 	let resposta: Response;
 	// The server takes writes only as JSON (a CORS preflight for cross-site pages): `{}` when empty.
 	const enviar = corpo ?? (metodo === "POST" ? {} : undefined);

@@ -14,6 +14,25 @@ O estado fica em `~/.lab/` (`LAB_CASA` troca a pasta). Lá ficam `estado.json` (
 
 Do código, sem o comando global: `bun packages/lab/src/cli.ts`. Para instalar o comando `lab`, rode `bun link` dentro de `packages/lab`.
 
+## Laboratórios
+
+Cada **laboratório** é um `lab` separado, com a casa, os omp e a máquina dele: nada se mistura. O lab que você abre (o de `~/.lab`, "Mac") é a entrada dos outros, listados em `~/.lab/laboratorios.json`:
+
+```json
+[
+	{ "id": "sinco", "nome": "Sinco", "tipo": "local", "casa": "~/.lab-sinco", "porta": 4301 },
+	{ "id": "ec2", "nome": "EC2", "tipo": "ssh", "host": "pedro@10.2.69.148", "chave": "~/.ssh/orbi-workstation", "portaRemota": 4300 }
+]
+```
+
+- **`local`**: outro lab nesta máquina. O de entrada usa o que já está ligado (o pid de `<casa>/servidor.json`); senão liga um (`LAB_CASA=<casa> lab --port <porta> --no-abrir`, log em `<casa>/lab.log`) como processo próprio: ele continua ligado quando o de entrada reinicia, e ninguém o desliga. Se você o desligar, ele fica fora do ar até **Tentar de novo** ou o lab de entrada subir de novo.
+- **`ssh`**: um lab em outra máquina, ouvindo em `127.0.0.1` lá. O de entrada lê a porta de verdade do `servidor.json` remoto (`casa`, padrão `~/.lab`; `portaRemota` só se não der) e mantém um túnel `ssh -N -L`, filho dele, que volta sozinho quando cai (espera de 1 s a 30 s) e fecha junto com ele.
+- `maquina` (opcional) é o rótulo da máquina na lista: a desta máquina para os locais (`mac` no macOS), o `id` para os por ssh.
+
+Sem o arquivo, o lab é um só, como sempre. Com ele, a página de cada laboratório é `/l/<id>/` (o de entrada é `/`), o mesmo código: o seletor no alto da coluna dos times (no celular, em cima da Sala e dos Times) troca tudo, e o endereço guarda a escolha. O lab de entrada passa adiante só os dados, `/l/<id>/api/*` e o WebSocket `/l/<id>/ws`, e lê o `/api/estado` de cada um a cada 3 s para a lista (`GET /api/laboratorios`, e o quadro `{t:"laboratorios"}` no WebSocket). Um laboratório fora do ar mostra os últimos times que este navegador viu, apagados, e **Tentar de novo** (`POST /api/laboratorios/<id>/tentar`) liga o lab ou reabre o túnel na hora.
+
+Quem é você passa adiante pelos mesmos cabeçalhos que o lab já aceita só de `127.0.0.1` (`Tailscale-User-*`, `X-Lab-Autor: carly`); o dono do lab de entrada vai como `X-Lab-Autor: dono`, e é o dono no outro lab também.
+
 ## Caixa de prompt
 
 O texto em cima; embaixo, o clipe e o quadro, e à direita Parar, o microfone e Enviar. **Enter** envia, **Shift+Enter** quebra a linha e **↑** na caixa vazia traz de volta o que você mandou.
@@ -63,3 +82,35 @@ As mudanças do fork fora de `packages/lab` são poucas, de propósito:
 
 - O `prompt`, o `steer` e o `follow_up` do RPC aceitam `from`. A mensagem chega como a de um convidado do `/collab`, e o modelo sabe quem falou.
 - O `Transcript` do collab-web aceita rótulos (`TranscriptLabelsContext`), para os rostos e os textos em português.
+
+## EC2
+
+O laboratório **EC2** roda em `pedro@10.2.69.148` (Amazon Linux 2023, x86_64), separado do Mac: casa `~/.lab` de lá, código em `~/lab` (clone do `main`), escutando em `127.0.0.1:4300`. Usa um bun só dele, em `~/.lab-bun` (o `~/.local/bin/bun` e o `~/.local/bin/omp` da máquina são de outras coisas e ficam como estão), e o login do omp que já existe lá (`~/.omp`).
+
+Instalação, uma vez:
+
+```sh
+curl -fsSL https://bun.sh/install | BUN_INSTALL=~/.lab-bun bash -s bun-v1.4.5
+git clone https://github.com/pedrotaciano/lab ~/lab && cd ~/lab
+~/.lab-bun/bin/bun install
+~/.lab-bun/bin/bun packages/lab/scripts/nativos.ts   # pi_natives.linux-x64-{modern,baseline}.node
+~/.lab-bun/bin/bun packages/coding-agent/src/cli.ts --smoke-test
+```
+
+Ele roda como serviço do usuário, `~/.config/systemd/user/lab.service` (`Restart=always`, `LAB_CASA=%h/.lab`, `bun packages/lab/src/cli.ts --no-abrir --port 4300`), habilitado com `systemctl --user enable --now lab`; o linger do usuário já está ligado, então ele sobe com a máquina e sobrevive ao logout.
+
+```sh
+systemctl --user status lab
+journalctl --user -u lab -f          # logs
+```
+
+Para atualizar:
+
+```sh
+cd ~/lab && git pull
+~/.lab-bun/bin/bun install
+~/.lab-bun/bin/bun packages/lab/scripts/nativos.ts
+systemctl --user restart lab
+```
+
+Do Mac, sem o registro de laboratórios: `ssh -i ~/.ssh/orbi-workstation -N -L 4302:127.0.0.1:4300 pedro@10.2.69.148` e abra `http://127.0.0.1:4302`.

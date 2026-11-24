@@ -8,11 +8,13 @@ import { Chat, SemChat } from "./componentes/Chat";
 import { Sala } from "./componentes/Sala";
 import { Memoria } from "./componentes/Memoria";
 import { Tarefas } from "./componentes/Tarefas";
+import { TrocaLab } from "./componentes/Laboratorios";
 import { AdicionarTime, Times } from "./componentes/Times";
-import { api } from "./lib/api";
+import { api, apiDaEntrada } from "./lib/api";
 import { Conexao } from "./lib/conexao";
 import { ESTADO_VAZIO, type Lab, LabContexto, useConexao } from "./lib/contexto";
-import type { Autor } from "./tipos";
+import { estadoGuardado, ID_ENTRADA, LAB_DA_PAGINA } from "./lib/laboratorio";
+import type { Autor, ResumoLaboratorio } from "./tipos";
 import "./fontes/fontes.css";
 import "./estilo.css";
 
@@ -87,9 +89,22 @@ function App(): ReactNode {
 	useNoite();
 	useTeclado();
 
+	const temEstado = foto.estado !== null;
 	useEffect(() => {
+		// Asked again once the lab answers: it may have been down when the page opened.
+		if (!temEstado || eu) return;
 		void api<Autor>("GET", "/api/eu")
 			.then(setEu)
+			.catch(() => undefined);
+	}, [temEstado, eu]);
+
+	// A link to a lab the entry lab no longer knows goes to the entry lab.
+	useEffect(() => {
+		if (LAB_DA_PAGINA === ID_ENTRADA) return;
+		void apiDaEntrada<ResumoLaboratorio[]>("GET", "/api/laboratorios")
+			.then(lista => {
+				if (!lista.some(item => item.id === LAB_DA_PAGINA)) location.replace("/");
+			})
 			.catch(() => undefined);
 	}, []);
 
@@ -100,7 +115,17 @@ function App(): ReactNode {
 	}, []);
 	const adicionarTime = useCallback((): void => setAdicionando(true), []);
 
-	const estado = foto.estado ?? ESTADO_VAZIO;
+	// More than one lab: the page shows its lab at once, from what this browser last saw of it,
+	// until the lab answers (and dimmed while it is down).
+	const labs = foto.laboratorios;
+	const varios = LAB_DA_PAGINA !== ID_ENTRADA || (labs?.length ?? 0) > 1;
+	const estadoDoLab = varios ? labs?.find(item => item.id === LAB_DA_PAGINA)?.estado : "online";
+	const foraDoAr = estadoDoLab === "fora";
+	const guardado = useMemo(estadoGuardado, []);
+	const estado = foto.estado ?? (varios ? guardado : null) ?? ESTADO_VAZIO;
+	const quieto = varios && (estadoDoLab !== "online" || !foto.estado);
+	// Down, or reconnecting after being down: dimmed at once. Just opened: dimmed only if it takes.
+	const classeLab = !quieto ? "" : foraDoAr || estadoDoLab === "conectando" ? " is-fora" : " is-esperando";
 	const chat = chatAberto ? estado.chats.find(c => c.id === chatAberto) : undefined;
 
 	// A chat that was here and is gone (closed elsewhere) closes here too; a new one may not be in
@@ -128,7 +153,7 @@ function App(): ReactNode {
 		</p>
 	);
 
-	if (!foto.estado) {
+	if (!foto.estado && !varios) {
 		return (
 			<div className="carregando" role="status">
 				<p className="rotulo">
@@ -160,30 +185,33 @@ function App(): ReactNode {
 	return (
 		<LabContexto.Provider value={lab}>
 			{celular ? (
-				<div className="app app--celular">
+				<div className={`app app--celular${varios ? " tem-labs" : ""}${classeLab}`}>
 					{banner}
 					<main className="app__tela">
-						<div className="app__painel" hidden={visivel !== "sala"}>
-							<Sala estado={estado} />
-						</div>
-						{visivel === "chat" &&
-							(chat ? (
-								<Chat key={chat.id} chat={chat} estado={estado} celular />
-							) : (
+						{(visivel === "sala" || (visivel === "chat" && !chat)) && troca}
+						<div className="app__quieto" inert={quieto}>
+							<div className="app__painel" hidden={visivel !== "sala"}>
+								<Sala estado={estado} />
+							</div>
+							{visivel === "chat" &&
+								(chat ? (
+									<Chat key={chat.id} chat={chat} estado={estado} celular />
+								) : (
+									<div className="app__painel app__painel--rolar">
+										<Times estado={estado} />
+									</div>
+								))}
+							{visivel === "tarefas" && (
 								<div className="app__painel app__painel--rolar">
-									<Times estado={estado} />
+									<Tarefas estado={estado} />
 								</div>
-							))}
-						{visivel === "tarefas" && (
-							<div className="app__painel app__painel--rolar">
-								<Tarefas estado={estado} />
-							</div>
-						)}
-						{visivel === "memoria" && (
-							<div className="app__painel">
-								<Memoria estado={estado} celular />
-							</div>
-						)}
+							)}
+							{visivel === "memoria" && (
+								<div className="app__painel">
+									<Memoria estado={estado} celular />
+								</div>
+							)}
+						</div>
 					</main>
 					<nav className="abas abas--baixo" role="tablist" aria-label="Telas">
 						{abaBotao("sala", "Sala")}
@@ -193,9 +221,12 @@ function App(): ReactNode {
 					</nav>
 				</div>
 			) : (
-				<div className="app">
+				<div className={`app${classeLab}`}>
 					<aside className="app__lateral">
-						<Times estado={estado} />
+						{troca}
+						<div className="app__quieto" inert={quieto}>
+							<Times estado={estado} />
+						</div>
 					</aside>
 					<main className="app__meio">
 						<nav className="abas" role="tablist" aria-label="Vistas">
@@ -204,21 +235,23 @@ function App(): ReactNode {
 							{temEgregore && abaBotao("memoria", "Memória")}
 						</nav>
 						{banner}
-						<div className="app__painel" hidden={visivel !== "sala"}>
+						<div className="app__painel" hidden={visivel !== "sala"} inert={quieto}>
 							<Sala estado={estado} />
 						</div>
 						{visivel === "tarefas" && (
-							<div className="app__painel app__painel--rolar">
+							<div className="app__painel app__painel--rolar" inert={quieto}>
 								<Tarefas estado={estado} />
 							</div>
 						)}
 						{visivel === "memoria" && (
-							<div className="app__painel">
+							<div className="app__painel" inert={quieto}>
 								<Memoria estado={estado} celular={false} />
 							</div>
 						)}
 					</main>
-					{chat ? <Chat key={chat.id} chat={chat} estado={estado} celular={false} /> : <SemChat />}
+					<div className="app__quieto" inert={quieto}>
+						{chat ? <Chat key={chat.id} chat={chat} estado={estado} celular={false} /> : <SemChat />}
+					</div>
 				</div>
 			)}
 			{adicionando && <AdicionarTime aoFechar={() => setAdicionando(false)} />}

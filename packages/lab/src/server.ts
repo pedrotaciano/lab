@@ -1,6 +1,8 @@
 /**
  * The lab HTTP/WebSocket server: REST API over teams and chats, `/ws` for the
- * estado stream and per-chat transcript frames, and the web UI.
+ * estado stream and per-chat transcript frames, and the web UI. As the entry of
+ * other laboratórios (`laboratorios.json`) it also serves the same page at
+ * `/l/<id>/` and proxies `/l/<id>/api/*` and `/l/<id>/ws` to that lab.
  */
 import type { Dirent } from "node:fs";
 import * as fs from "node:fs/promises";
@@ -11,9 +13,10 @@ import type { Server, ServerWebSocket } from "bun";
 import { Anexos } from "./anexos";
 import { ChatProcess, ErroLab, type SinalChat, sortearNome } from "./chat";
 import { type EnviarFrame, PonteChat } from "./frames";
+import { alguemOuve, ID_ENTRADA, Laboratorios, proxiarHttp, TuboWs } from "./laboratorios";
 import { detectarEgregore, MemoriaEgregore } from "./memoria";
 import { type RegistroChat, Store } from "./store";
-import type { Autor, Estado, MensagemCliente, MensagemServidor, ResumoChat, Time } from "./tipos";
+import type { Autor, Estado, MensagemCliente, MensagemServidor, ResumoChat, ResumoLaboratorio, Time } from "./tipos";
 import { lerLoginDoDono } from "./tailscale";
 import { Transcricao } from "./transcricao";
 import pagina from "../web/index.html";
@@ -27,6 +30,9 @@ interface DadosSocket {
 	autor: Autor;
 	/** chatId → frame sink registered on that chat's bridge. */
 	assinaturas: Map<string, EnviarFrame>;
+	/** `/l/<id>/ws` of another lab: its id, and once open the pipe to it (null for this lab's own `/ws`). */
+	lab: string | null;
+	tubo: TuboWs | null;
 }
 
 type Socket = ServerWebSocket<DadosSocket>;
@@ -54,10 +60,13 @@ export class Laboratorio {
 	#timerEstado: NodeJS.Timeout | undefined;
 	#ultimoEstado = 0;
 	#timerPastas: NodeJS.Timeout | undefined;
+	readonly #laboratorios: Laboratorios;
+	#ultimosLaboratorios = "";
 
 	constructor(casa: string) {
 		this.#store = new Store(casa);
 		this.#anexos = new Anexos(casa);
+		this.#laboratorios = new Laboratorios(casa, () => this.#avisarLaboratorios());
 	}
 
 	get url(): string | null {
@@ -81,6 +90,7 @@ export class Laboratorio {
 			if (await alguemOuve(opcoes.host, porta)) continue;
 			try {
 				this.#servidor = this.#servir(opcoes.host, porta);
+				await this.#laboratorios.iniciar();
 				return this.url!;
 			} catch (err) {
 				if (!emUso(err)) throw err;
@@ -93,6 +103,7 @@ export class Laboratorio {
 	/** Stop every omp and the server. */
 	async parar(): Promise<void> {
 		clearInterval(this.#timerPastas);
+		this.#laboratorios.parar();
 		clearTimeout(this.#timerEstado);
 		this.#transcricao.parar();
 		for (const memoria of this.#memorias.values()) memoria.fechar();
@@ -114,6 +125,10 @@ export class Laboratorio {
 			pessoas: [...pessoas.values()],
 			voz: this.#voz,
 		};
+	}
+
+	laboratorios(): ResumoLaboratorio[] {
+		return this.#laboratorios.lista(this.estado());
 	}
 
 	// ── server ──────────────────────────────────────────────────────────────
@@ -145,6 +160,12 @@ export class Laboratorio {
 			if (!memoria) throw new ErroLab(404, "este time não é um Egregore");
 			return memoria;
 		};
+		const abrirWs = (req: Request, server: Server<DadosSocket>, lab: string | null): Response | undefined => {
+			if (!mesmaOrigem(req)) return new Response("Forbidden", { status: 403 });
+			const autor = this.#autorDe(req, server);
+			if (server.upgrade(req, { data: { autor, assinaturas: new Map(), lab, tubo: null } })) return undefined;
+			return new Response("Upgrade Required", { status: 426 });
+		};
 		return Bun.serve<DadosSocket>({
 			hostname: host,
 			port,
@@ -152,6 +173,15 @@ export class Laboratorio {
 			routes: {
 				"/": pagina,
 				"/arte/*": (req: Request) => arte(new URL(req.url).pathname),
+				"/api/laboratorios": { GET: api(() => this.laboratorios()) },
+				"/api/laboratorios/:id/tentar": {
+					POST: api(req => {
+						const lab = this.#laboratorios.lab((req as Bun.BunRequest<"/api/laboratorios/:id">).params.id);
+						if (!lab) throw new ErroLab(404, "laboratório não encontrado");
+						void lab.tentar();
+						return { ok: true };
+					}),
+				},
 				"/api/estado": { GET: api(() => this.estado()) },
 				"/api/eu": { GET: api((_req, autor) => autor) },
 				"/api/pastas": { GET: api(req => listarPastas(new URL(req.url).searchParams.get("caminho"))) },
@@ -273,23 +303,36 @@ export class Laboratorio {
 						return chatDe(req).mudo(mudo);
 					}),
 				},
-				"/ws": (req: Request, server: Server<DadosSocket>) => {
-					if (!mesmaOrigem(req)) return new Response("Forbidden", { status: 403 });
-					const autor = this.#autorDe(req, server);
-					if (server.upgrade(req, { data: { autor, assinaturas: new Map() } })) return undefined;
-					return new Response("Upgrade Required", { status: 426 });
-				},
+				"/ws": (req: Request, server: Server<DadosSocket>) => abrirWs(req, server, null),
 			},
 			fetch: () => Response.json({ erro: "não encontrado" }, { status: 404 }),
 			websocket: {
 				open: socket => {
+					socket.subscribe("laboratorios");
+					socket.send(
+						JSON.stringify({ t: "laboratorios", laboratorios: this.laboratorios() } satisfies MensagemServidor),
+					);
+					const lab = socket.data.lab ? this.#laboratorios.lab(socket.data.lab) : undefined;
+					if (lab) {
+						const tubo = new TuboWs(lab.id, socket, () => lab.online);
+						socket.data.tubo = tubo;
+						tubo.conectar(lab.url, socket.data.autor);
+						return;
+					}
 					this.#sockets.add(socket);
 					socket.subscribe("estado");
 					socket.send(JSON.stringify({ t: "estado", estado: this.estado() } satisfies MensagemServidor));
 					this.#agendarEstado();
 				},
-				message: (socket, mensagem) => this.#aoMensagem(socket, mensagem),
+				message: (socket, mensagem) => {
+					if (socket.data.tubo) socket.data.tubo.enviar(String(mensagem));
+					else this.#aoMensagem(socket, mensagem);
+				},
 				close: socket => {
+					if (socket.data.tubo) {
+						socket.data.tubo.fechar();
+						return;
+					}
 					this.#sockets.delete(socket);
 					for (const [chatId, enviar] of socket.data.assinaturas) this.#desassinar(chatId, enviar);
 					socket.data.assinaturas.clear();
@@ -340,15 +383,17 @@ export class Laboratorio {
 	}
 
 	/**
-	 * Who sent `req`. Identity headers (Tailscale serve, the Carly plugin) are
-	 * trusted only on loopback connections, where `tailscale serve` proxies from.
+	 * Who sent `req`. Identity headers (Tailscale serve, the Carly plugin, an entry
+	 * lab proxying here) are trusted only on loopback connections, where `tailscale
+	 * serve`, the entry lab and its SSH tunnel connect from. `X-Lab-Autor: dono` is
+	 * an entry lab passing its own owner on: the owner here too.
 	 */
 	#autorDe(req: Request, server: Server<DadosSocket>): Autor {
 		const ip = server.requestIP(req)?.address ?? "";
 		if (!ehLoopback(ip)) return { login: `ip:${ip}`, nome: "Convidado", foto: null, tipo: "membro" };
-		if (req.headers.get("x-lab-autor")?.toLowerCase() === "carly") {
-			return { login: "carly", nome: "Carly", foto: null, tipo: "carly" };
-		}
+		const quem = req.headers.get("x-lab-autor")?.toLowerCase();
+		if (quem === "carly") return { login: "carly", nome: "Carly", foto: null, tipo: "carly" };
+		if (quem === "dono") return this.#dono!;
 		const login = req.headers.get("tailscale-user-login");
 		if (login) {
 			const foto = req.headers.get("tailscale-user-profile-pic") || null;
@@ -365,7 +410,7 @@ export class Laboratorio {
 
 	// ── estado ──────────────────────────────────────────────────────────────
 
-	/** Broadcast estado at most once per {@link INTERVALO_ESTADO_MS}. */
+	/** Broadcast estado (and the laboratórios, when they changed) at most once per {@link INTERVALO_ESTADO_MS}. */
 	#agendarEstado(): void {
 		if (this.#timerEstado || !this.#servidor) return;
 		const espera = Math.max(0, this.#ultimoEstado + INTERVALO_ESTADO_MS - Date.now());
@@ -376,7 +421,17 @@ export class Laboratorio {
 				"estado",
 				JSON.stringify({ t: "estado", estado: this.estado() } satisfies MensagemServidor),
 			);
+			this.#avisarLaboratorios();
 		}, espera);
+	}
+
+	/** Push the laboratórios to every page (this lab's and the proxied ones) when they changed. */
+	#avisarLaboratorios(): void {
+		if (!this.#servidor) return;
+		const texto = JSON.stringify({ t: "laboratorios", laboratorios: this.laboratorios() } satisfies MensagemServidor);
+		if (texto === this.#ultimosLaboratorios) return;
+		this.#ultimosLaboratorios = texto;
+		this.#servidor.publish("laboratorios", texto);
 	}
 
 	async #verificarPastas(): Promise<void> {
@@ -591,21 +646,6 @@ function respostaDeErro(err: unknown): Response {
 	if (err instanceof ErroLab) return Response.json({ erro: err.message }, { status: err.status });
 	logger.error("lab: request failed", { error: err instanceof Error ? err.stack : String(err) });
 	return Response.json({ erro: err instanceof Error ? err.message : String(err) }, { status: 500 });
-}
-
-/** Something already accepts TCP connections on `host:port`. */
-async function alguemOuve(host: string, port: number): Promise<boolean> {
-	const alvo = host === "0.0.0.0" || host === "::" ? "127.0.0.1" : host;
-	try {
-		const socket = await Promise.race([
-			Bun.connect({ hostname: alvo, port, socket: { data() {} } }),
-			Bun.sleep(500).then(() => null),
-		]);
-		socket?.end();
-		return socket !== null;
-	} catch {
-		return false;
-	}
 }
 
 function emUso(err: unknown): boolean {

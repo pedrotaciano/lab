@@ -5,6 +5,7 @@
 import { api, caminhoDoChat, ErroApi } from "./api";
 import type { LivePhase } from "../tipos";
 import type { Conexao, QuadroVoz } from "./conexao";
+import { noLab } from "./laboratorio";
 
 export type FaseVoz = "conectando" | "ouvindo" | "trabalhando" | "falando" | "mudo" | "caiu" | "erro";
 
@@ -180,7 +181,9 @@ export class Chamada {
 
 	#aoSair = (): void => {
 		if (!this.#ativa) return;
-		void fetch(caminhoDoChat(this.chatId, "/voz"), { method: "DELETE", keepalive: true }).catch(() => undefined);
+		void fetch(noLab(caminhoDoChat(this.chatId, "/voz")), { method: "DELETE", keepalive: true }).catch(
+			() => undefined,
+		);
 		this.#ativa = false;
 		this.#limpar();
 	};
