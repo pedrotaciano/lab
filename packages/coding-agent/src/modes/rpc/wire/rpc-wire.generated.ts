@@ -1634,18 +1634,24 @@ export interface PromptParams {
 	/** Images attached to the message. */
 	images?: ImageContent[];
 	streamingBehavior?: StreamingBehavior;
+	/** Author of input from another participant; sent as a `collab-prompt` custom message carrying the name. */
+	from?: string;
 }
 
 export interface SteerParams {
 	message: string;
 	/** Images attached to the message. */
 	images?: ImageContent[];
+	/** Author of input from another participant; sent as a `collab-prompt` custom message carrying the name. */
+	from?: string;
 }
 
 export interface FollowUpParams {
 	message: string;
 	/** Images attached to the message. */
 	images?: ImageContent[];
+	/** Author of input from another participant; sent as a `collab-prompt` custom message carrying the name. */
+	from?: string;
 }
 
 export interface RemoveQueuedMessageParams {

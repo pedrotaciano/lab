@@ -6409,6 +6409,10 @@
 				},
 				"streamingBehavior": {
 					"$ref": "#/$defs/StreamingBehavior"
+				},
+				"from": {
+					"type": "string",
+					"description": "Author of input from another participant; sent as a `collab-prompt` custom message carrying the name."
 				}
 			},
 			"required": [
@@ -6427,6 +6431,10 @@
 						"$ref": "#/$defs/ImageContent"
 					},
 					"description": "Images attached to the message."
+				},
+				"from": {
+					"type": "string",
+					"description": "Author of input from another participant; sent as a `collab-prompt` custom message carrying the name."
 				}
 			},
 			"required": [
@@ -6445,6 +6453,10 @@
 						"$ref": "#/$defs/ImageContent"
 					},
 					"description": "Images attached to the message."
+				},
+				"from": {
+					"type": "string",
+					"description": "Author of input from another participant; sent as a `collab-prompt` custom message carrying the name."
 				}
 			},
 			"required": [

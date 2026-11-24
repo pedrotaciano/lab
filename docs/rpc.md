@@ -128,9 +128,9 @@ Important edge behavior from runtime:
 
 ### Prompting
 
-- `{ id?, type: "prompt", message: string, images?: ImageContent[], streamingBehavior?: "steer" | "followUp" }`
-- `{ id?, type: "steer", message: string, images?: ImageContent[] }`
-- `{ id?, type: "follow_up", message: string, images?: ImageContent[] }`
+- `{ id?, type: "prompt", message: string, images?: ImageContent[], streamingBehavior?: "steer" | "followUp", from?: string }`
+- `{ id?, type: "steer", message: string, images?: ImageContent[], from?: string }`
+- `{ id?, type: "follow_up", message: string, images?: ImageContent[], from?: string }`
 - `{ id?, type: "remove_queued_message", message: string, queue: "steering" | "followUp" }`
 - `{ id?, type: "promote_queued_message", message: string }`
 - `{ id?, type: "abort" }`
@@ -140,6 +140,8 @@ Important edge behavior from runtime:
 - `{ id?, type: "resume" }`
 - `{ id?, type: "new_session", parentSession?: string }`
 - `{ id?, type: "open_session", sessionDir: string, provider?: string, modelId?: string }`
+
+`from` names the author of input from another participant, such as a `/collab` guest. With it, the message is recorded as a `custom_message` entry with `customType: "collab-prompt"` and `details.from`, the model reads it with the author's name, and it never runs as a slash command or skill. Without it, input is the session owner's.
 
 ### Protocol
 

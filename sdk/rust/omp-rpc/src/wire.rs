@@ -5356,6 +5356,9 @@ pub struct PromptParams {
 	pub images: Option<Vec<ImageContent>>,
 	#[serde(rename = "streamingBehavior", default, skip_serializing_if = "Option::is_none")]
 	pub streaming_behavior: Option<StreamingBehavior>,
+	/// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub from: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -5364,6 +5367,9 @@ pub struct SteerParams {
 	/// Images attached to the message.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub images: Option<Vec<ImageContent>>,
+	/// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub from: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -5372,6 +5378,9 @@ pub struct FollowUpParams {
 	/// Images attached to the message.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub images: Option<Vec<ImageContent>>,
+	/// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub from: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -6353,6 +6362,9 @@ pub struct PromptCommand {
 	pub images: Option<Vec<ImageContent>>,
 	#[serde(rename = "streamingBehavior", default, skip_serializing_if = "Option::is_none")]
 	pub streaming_behavior: Option<StreamingBehavior>,
+	/// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub from: Option<String>,
 }
 
 impl Command for PromptCommand {
@@ -6372,6 +6384,9 @@ pub struct SteerCommand {
 	/// Images attached to the message.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub images: Option<Vec<ImageContent>>,
+	/// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub from: Option<String>,
 }
 
 impl Command for SteerCommand {
@@ -6392,6 +6407,9 @@ pub struct FollowUpCommand {
 	/// Images attached to the message.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub images: Option<Vec<ImageContent>>,
+	/// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub from: Option<String>,
 }
 
 impl Command for FollowUpCommand {

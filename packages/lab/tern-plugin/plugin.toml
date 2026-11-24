@@ -1,0 +1,7 @@
+schema = 1
+id = "lab"
+name = "Lab"
+version = "0.1.0"
+description = "A Carly como secretária do lab: vê os times e os chats e fala com eles."
+icon = "sparkle"
+window = "window.luau"

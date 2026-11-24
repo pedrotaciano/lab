@@ -1,0 +1,38 @@
+{
+  "type": "module",
+  "name": "@oh-my-pi/lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local lab server: one omp per chat, grouped in teams, with a web UI",
+  "license": "MIT",
+  "bin": {
+    "lab": "./src/cli.ts"
+  },
+  "scripts": {
+    "dev": "bun src/cli.ts",
+    "test": "bun test --parallel",
+    "check": "oxlint . && oxfmt --check --no-error-on-unmatched-pattern '{src,web}/**/*.{ts,tsx}' '{test,bench,examples,scripts}/**/*.ts' '*.ts' && bun run check:types",
+    "check:types": "bun check --no-script -p tsconfig.json && bun check --no-script -p tsconfig.web.json",
+    "lint": "oxlint .",
+    "fix": "oxlint --fix --fix-suggestions . && bun run fmt",
+    "fmt": "oxfmt --no-error-on-unmatched-pattern '{src,web}/**/*.{ts,tsx}' '{test,bench,examples,scripts}/**/*.ts' '*.ts'"
+  },
+  "dependencies": {
+    "@oh-my-pi/collab-web": "workspace:*",
+    "@oh-my-pi/pi-coding-agent": "catalog:",
+    "@oh-my-pi/pi-utils": "catalog:",
+    "@oh-my-pi/pi-wire": "catalog:",
+    "katex": "catalog:",
+    "lucide-react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  }
+}

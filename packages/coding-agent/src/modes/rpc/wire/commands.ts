@@ -30,6 +30,10 @@ export interface RpcCommandSpec {
 }
 
 const IMAGES = doc("ImageContent[]", "Images attached to the message.");
+const FROM = doc(
+	"string",
+	"Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.",
+);
 
 export const rpcCommands: readonly RpcCommandSpec[] = [
 	{
@@ -41,12 +45,16 @@ export const rpcCommands: readonly RpcCommandSpec[] = [
 	{
 		name: "prompt",
 		doc: "Submit a prompt; acknowledged once admitted, completed by its `prompt_result`.",
-		params: { message: "string", "images?": IMAGES, "streamingBehavior?": "StreamingBehavior" },
+		params: { message: "string", "images?": IMAGES, "streamingBehavior?": "StreamingBehavior", "from?": FROM },
 		result: "PromptAck",
 		completion: "prompt_result",
 	},
-	{ name: "steer", doc: "Queue a steering message.", params: { message: "string", "images?": IMAGES } },
-	{ name: "follow_up", doc: "Queue a follow-up message.", params: { message: "string", "images?": IMAGES } },
+	{ name: "steer", doc: "Queue a steering message.", params: { message: "string", "images?": IMAGES, "from?": FROM } },
+	{
+		name: "follow_up",
+		doc: "Queue a follow-up message.",
+		params: { message: "string", "images?": IMAGES, "from?": FROM },
+	},
 	{
 		name: "remove_queued_message",
 		doc: "Remove one pending queued message by its queue-chip text.",

@@ -53,9 +53,17 @@ export type RpcCommand =
 	| { id?: string; type: "negotiate_protocol"; protocolVersion: number }
 
 	// Prompting
-	| { id?: string; type: "prompt"; message: string; images?: ImageContent[]; streamingBehavior?: "steer" | "followUp" }
-	| { id?: string; type: "steer"; message: string; images?: ImageContent[] }
-	| { id?: string; type: "follow_up"; message: string; images?: ImageContent[] }
+	// `from`: author of input from another participant (a collab-prompt, as `/collab` guests send)
+	| {
+			id?: string;
+			type: "prompt";
+			message: string;
+			images?: ImageContent[];
+			streamingBehavior?: "steer" | "followUp";
+			from?: string;
+	  }
+	| { id?: string; type: "steer"; message: string; images?: ImageContent[]; from?: string }
+	| { id?: string; type: "follow_up"; message: string; images?: ImageContent[]; from?: string }
 	| { id?: string; type: "remove_queued_message"; message: string; queue: "steering" | "followUp" }
 	| { id?: string; type: "promote_queued_message"; message: string }
 	| { id?: string; type: "abort" }

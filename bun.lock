@@ -135,6 +135,28 @@
         "@types/react-dom": "catalog:",
       },
     },
+    "packages/lab": {
+      "name": "@oh-my-pi/lab",
+      "version": "0.1.0",
+      "bin": {
+        "lab": "./src/cli.ts",
+      },
+      "dependencies": {
+        "@oh-my-pi/collab-web": "workspace:*",
+        "@oh-my-pi/pi-coding-agent": "catalog:",
+        "@oh-my-pi/pi-utils": "catalog:",
+        "@oh-my-pi/pi-wire": "catalog:",
+        "katex": "catalog:",
+        "lucide-react": "catalog:",
+        "react": "catalog:",
+        "react-dom": "catalog:",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:",
+        "@types/react": "catalog:",
+        "@types/react-dom": "catalog:",
+      },
+    },
     "packages/metaharness": {
       "name": "@oh-my-pi/pi-metaharness",
       "version": "0.0.1",
@@ -623,6 +645,8 @@
     "@oh-my-pi/browser-relay": ["@oh-my-pi/browser-relay@workspace:packages/browser-relay"],
 
     "@oh-my-pi/collab-web": ["@oh-my-pi/collab-web@workspace:packages/collab-web"],
+
+    "@oh-my-pi/lab": ["@oh-my-pi/lab@workspace:packages/lab"],
 
     "@oh-my-pi/omp-stats": ["@oh-my-pi/omp-stats@workspace:packages/stats"],
 

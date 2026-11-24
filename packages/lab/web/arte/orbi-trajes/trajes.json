@@ -1,0 +1,792 @@
+{
+  "pecas": [
+    {
+      "cat": "hat",
+      "id": "chef",
+      "nome": "Chapéu de chef",
+      "src": "arte/orbi-trajes/hat/chef.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "mago",
+      "nome": "Chapéu de mago",
+      "src": "arte/orbi-trajes/hat/mago.png",
+      "tema": true,
+      "ocultaAcima": [
+        10,
+        11,
+        10,
+        15,
+        15,
+        15,
+        16,
+        15,
+        10,
+        11,
+        10,
+        10,
+        10,
+        10,
+        11,
+        10,
+        13,
+        12,
+        13,
+        13,
+        13,
+        13,
+        14,
+        13
+      ]
+    },
+    {
+      "cat": "hat",
+      "id": "pirata",
+      "nome": "Tricórnio",
+      "src": "arte/orbi-trajes/hat/pirata.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "palha",
+      "nome": "Chapéu de palha",
+      "src": "arte/orbi-trajes/hat/palha.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "gorro",
+      "nome": "Gorro",
+      "src": "arte/orbi-trajes/hat/gorro.png",
+      "cores": "plain_cap"
+    },
+    {
+      "cat": "hat",
+      "id": "fones",
+      "nome": "Fones",
+      "src": "arte/orbi-trajes/hat/fones.png"
+    },
+    {
+      "cat": "hat",
+      "id": "astronauta",
+      "nome": "Capacete de astronauta",
+      "src": "arte/orbi-trajes/hat/astronauta.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "robo",
+      "nome": "Cabeça de robô",
+      "src": "arte/orbi-trajes/hat/robo.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "capuz",
+      "nome": "Capuz",
+      "src": "arte/orbi-trajes/hat/capuz.png",
+      "cores": "plain_cap"
+    },
+    {
+      "cat": "hair",
+      "id": "black_power",
+      "nome": "Black power",
+      "src": "arte/orbi-trajes/hair/black_power.png",
+      "cores": "short"
+    },
+    {
+      "cat": "hair",
+      "id": "moicano",
+      "nome": "Moicano",
+      "src": "arte/orbi-trajes/hair/moicano.png",
+      "cores": "short"
+    },
+    {
+      "cat": "hair",
+      "id": "coque",
+      "nome": "Coque",
+      "src": "arte/orbi-trajes/hair/coque.png",
+      "cores": "short"
+    },
+    {
+      "cat": "shades",
+      "id": "mascara",
+      "nome": "Máscara de herói",
+      "src": "arte/orbi-trajes/shades/mascara.png",
+      "tema": true
+    },
+    {
+      "cat": "shades",
+      "id": "tapa_olho",
+      "nome": "Tapa-olho",
+      "src": "arte/orbi-trajes/shades/tapa_olho.png",
+      "tema": true
+    },
+    {
+      "cat": "shades",
+      "id": "protecao",
+      "nome": "Óculos de proteção",
+      "src": "arte/orbi-trajes/shades/protecao.png",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "traje_espacial",
+      "nome": "Traje espacial",
+      "src": "arte/orbi-trajes/top/traje_espacial.png",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "dolma",
+      "nome": "Dólmã de chef",
+      "src": "arte/orbi-trajes/top/dolma.png",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "listrada",
+      "nome": "Listrada",
+      "src": "arte/orbi-trajes/top/listrada.png",
+      "cores": "long_sleeved_shirt"
+    },
+    {
+      "cat": "top",
+      "id": "moletom",
+      "nome": "Moletom",
+      "src": "arte/orbi-trajes/top/moletom.png",
+      "cores": "long_sleeved_shirt"
+    },
+    {
+      "cat": "top",
+      "id": "xadrez",
+      "nome": "Xadrez",
+      "src": "arte/orbi-trajes/top/xadrez.png",
+      "cores": "long_sleeved_shirt"
+    },
+    {
+      "cat": "top",
+      "id": "heroi",
+      "nome": "Uniforme de herói",
+      "src": "arte/orbi-trajes/top/heroi.png",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "carcaca",
+      "nome": "Carcaça de robô",
+      "src": "arte/orbi-trajes/top/carcaca.png",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "jaleco",
+      "nome": "Jaleco",
+      "src": "arte/orbi-trajes/jacket/jaleco.png",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "manto",
+      "nome": "Manto de mago",
+      "src": "arte/orbi-trajes/jacket/manto.png",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "acolchoada",
+      "nome": "Jaqueta acolchoada",
+      "src": "arte/orbi-trajes/jacket/acolchoada.png",
+      "cores": "bomber"
+    },
+    {
+      "cat": "jacket",
+      "id": "capa",
+      "nome": "Capa",
+      "src": "arte/orbi-trajes/jacket/capa.png",
+      "cores": "long_coat"
+    },
+    {
+      "cat": "pants",
+      "id": "calca_espacial",
+      "nome": "Calça espacial",
+      "src": "arte/orbi-trajes/pants/calca_espacial.png",
+      "tema": true
+    },
+    {
+      "cat": "pants",
+      "id": "pernas_robo",
+      "nome": "Pernas de robô",
+      "src": "arte/orbi-trajes/pants/pernas_robo.png",
+      "tema": true
+    },
+    {
+      "cat": "pants",
+      "id": "remendada",
+      "nome": "Calça remendada",
+      "src": "arte/orbi-trajes/pants/remendada.png",
+      "cores": "jeans"
+    },
+    {
+      "cat": "shoes",
+      "id": "botas_espaciais",
+      "nome": "Botas espaciais",
+      "src": "arte/orbi-trajes/shoes/botas_espaciais.png",
+      "tema": true
+    },
+    {
+      "cat": "shoes",
+      "id": "pes_robo",
+      "nome": "Pés de robô",
+      "src": "arte/orbi-trajes/shoes/pes_robo.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "coroa",
+      "nome": "Coroa",
+      "src": "arte/orbi-trajes/hat/coroa.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "bone_curto",
+      "nome": "Boné de aba curta",
+      "src": "arte/orbi-trajes/hat/bone_curto.png",
+      "cores": "plain_cap",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "turbante",
+      "nome": "Turbante",
+      "src": "arte/orbi-trajes/hat/turbante.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "gorro_pontudo",
+      "nome": "Gorro pontudo",
+      "src": "arte/orbi-trajes/hat/gorro_pontudo.png",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "cachecol",
+      "nome": "Cachecol listrado",
+      "src": "arte/orbi-trajes/hat/cachecol.png",
+      "cores": "plain_cap",
+      "tema": true
+    },
+    {
+      "cat": "hat",
+      "id": "gorro_guizo",
+      "nome": "Gorro com guizo",
+      "src": "arte/orbi-trajes/hat/gorro_guizo.png",
+      "tema": true,
+      "ocultaAcima": [
+        9,
+        10,
+        9,
+        14,
+        14,
+        14,
+        15,
+        14,
+        9,
+        10,
+        9,
+        9,
+        9,
+        9,
+        10,
+        9,
+        12,
+        11,
+        12,
+        12,
+        12,
+        12,
+        13,
+        12
+      ]
+    },
+    {
+      "cat": "hat",
+      "id": "gorro_mole",
+      "nome": "Gorro mole",
+      "src": "arte/orbi-trajes/hat/gorro_mole.png",
+      "tema": true
+    },
+    {
+      "cat": "shades",
+      "id": "redondos",
+      "nome": "Óculos redondos",
+      "src": "arte/orbi-trajes/shades/redondos.png",
+      "tema": true
+    },
+    {
+      "cat": "shades",
+      "id": "lente_unica",
+      "nome": "Lente única",
+      "src": "arte/orbi-trajes/shades/lente_unica.png",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "corpete",
+      "nome": "Corpete de princesa",
+      "src": "arte/orbi-trajes/top/corpete.png",
+      "cores": "long_sleeved_shirt",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "tunica_elfo",
+      "nome": "Túnica de elfo",
+      "src": "arte/orbi-trajes/top/tunica_elfo.png",
+      "tema": true
+    },
+    {
+      "cat": "top",
+      "id": "sem_camisa",
+      "nome": "Sem camisa",
+      "src": "arte/orbi-trajes/top/sem_camisa.png",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "macacao",
+      "nome": "Macacão",
+      "src": "arte/orbi-trajes/jacket/macacao.png",
+      "cores": "long_coat",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "tunica",
+      "nome": "Túnica com escudo",
+      "src": "arte/orbi-trajes/jacket/tunica.png",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "faixa",
+      "nome": "Faixa e cimitarra",
+      "src": "arte/orbi-trajes/jacket/faixa.png",
+      "tema": true
+    },
+    {
+      "cat": "jacket",
+      "id": "beca",
+      "nome": "Beca de aprendiz",
+      "src": "arte/orbi-trajes/jacket/beca.png",
+      "tema": true
+    },
+    {
+      "cat": "pants",
+      "id": "saia_rodada",
+      "nome": "Vestido rodado",
+      "src": "arte/orbi-trajes/pants/saia_rodada.png",
+      "cores": "long_skirt",
+      "tema": true
+    },
+    {
+      "cat": "pants",
+      "id": "bombacha",
+      "nome": "Calça larga",
+      "src": "arte/orbi-trajes/pants/bombacha.png",
+      "cores": "jeans",
+      "tema": true
+    },
+    {
+      "cat": "pants",
+      "id": "meia_listrada",
+      "nome": "Meia listrada",
+      "src": "arte/orbi-trajes/pants/meia_listrada.png",
+      "tema": true
+    },
+    {
+      "cat": "shoes",
+      "id": "descalco",
+      "nome": "Descalço",
+      "src": "arte/orbi-trajes/shoes/descalco.png",
+      "tema": true
+    },
+    {
+      "cat": "shoes",
+      "id": "pes_peludos",
+      "nome": "Pés peludos",
+      "src": "arte/orbi-trajes/shoes/pes_peludos.png",
+      "tema": true
+    }
+  ],
+  "peles": [
+    {
+      "label": "Azul",
+      "hex": "#4f7fd6",
+      "valor": {
+        "h": 214,
+        "s": 62,
+        "b": -22,
+        "c": 0,
+        "colorize": true
+      }
+    },
+    {
+      "label": "Laranja",
+      "hex": "#f08a3c",
+      "valor": {
+        "h": 26,
+        "s": 86,
+        "b": -6,
+        "c": 0,
+        "colorize": true
+      }
+    },
+    {
+      "label": "Amarela",
+      "hex": "#f2c230",
+      "valor": {
+        "h": 47,
+        "s": 92,
+        "b": -2,
+        "c": 0,
+        "colorize": true
+      }
+    }
+  ],
+  "conjuntos": [
+    {
+      "id": "astronauta",
+      "nome": "Astronauta",
+      "look": {
+        "chapeu": "astronauta",
+        "cima": "traje_espacial",
+        "jaqueta": null,
+        "calca": "calca_espacial",
+        "sapato": "botas_espaciais",
+        "oculos": null,
+        "barba": null
+      }
+    },
+    {
+      "id": "chef",
+      "nome": "Chef",
+      "look": {
+        "chapeu": "chef",
+        "cima": "dolma",
+        "jaqueta": null,
+        "calca": "jeans",
+        "corCalca": "Black",
+        "sapato": "sneakers",
+        "corSapato": "Black",
+        "oculos": null
+      }
+    },
+    {
+      "id": "pirata",
+      "nome": "Pirata",
+      "look": {
+        "chapeu": "pirata",
+        "oculos": "tapa_olho",
+        "cima": "listrada",
+        "corCima": "Navy",
+        "jaqueta": null,
+        "calca": "shorts",
+        "corCalca": "Black",
+        "sapato": "boots",
+        "corSapato": "Black",
+        "barba": "full_beard",
+        "corBarba": "Black"
+      }
+    },
+    {
+      "id": "cientista",
+      "nome": "Cientista",
+      "look": {
+        "chapeu": null,
+        "oculos": "protecao",
+        "cima": "turtleneck",
+        "corCima": "Teal",
+        "jaqueta": "jaleco",
+        "calca": "jeans",
+        "corCalca": "Navy",
+        "sapato": "sneakers",
+        "corSapato": "White"
+      }
+    },
+    {
+      "id": "hacker",
+      "nome": "Hacker",
+      "look": {
+        "chapeu": "capuz",
+        "corChapeu": "Black",
+        "oculos": "shades",
+        "corOculos": "Black",
+        "cima": "moletom",
+        "corCima": "Black",
+        "jaqueta": null,
+        "calca": "jeans",
+        "corCalca": "Black",
+        "sapato": "sneakers",
+        "corSapato": "Black"
+      }
+    },
+    {
+      "id": "inverno",
+      "nome": "Inverno",
+      "look": {
+        "chapeu": "gorro",
+        "corChapeu": "Red",
+        "cima": "turtleneck",
+        "corCima": "White",
+        "jaqueta": "acolchoada",
+        "corJaqueta": "Navy",
+        "calca": "jeans",
+        "corCalca": "Navy",
+        "sapato": "boots",
+        "corSapato": "Original"
+      }
+    },
+    {
+      "id": "junina",
+      "nome": "Festa junina",
+      "look": {
+        "chapeu": "palha",
+        "cima": "xadrez",
+        "corCima": "Red",
+        "jaqueta": null,
+        "calca": "remendada",
+        "corCalca": "Navy",
+        "sapato": "boots",
+        "corSapato": "Original",
+        "barba": "moustache",
+        "corBarba": "Black"
+      }
+    },
+    {
+      "id": "heroi",
+      "nome": "Super-herói",
+      "look": {
+        "chapeu": null,
+        "oculos": "mascara",
+        "cima": "heroi",
+        "jaqueta": "capa",
+        "corJaqueta": "Red",
+        "calca": "fitted_shorts",
+        "corCalca": "Red",
+        "sapato": "boots",
+        "corSapato": "Red"
+      }
+    },
+    {
+      "id": "robo",
+      "nome": "Robô",
+      "look": {
+        "chapeu": "robo",
+        "oculos": null,
+        "cabelo": null,
+        "barba": null,
+        "cima": "carcaca",
+        "jaqueta": null,
+        "calca": "pernas_robo",
+        "sapato": "pes_robo"
+      }
+    },
+    {
+      "id": "mago",
+      "nome": "Mago",
+      "look": {
+        "chapeu": "mago",
+        "oculos": null,
+        "cima": "long_sleeved_shirt",
+        "corCima": "Purple",
+        "jaqueta": "manto",
+        "calca": "long_skirt",
+        "corCalca": "Purple",
+        "sapato": "boots",
+        "corSapato": "Black",
+        "barba": "long_beard",
+        "corBarba": "White"
+      }
+    },
+    {
+      "id": "princesa",
+      "nome": "Princesa",
+      "look": {
+        "chapeu": "coroa",
+        "cabelo": "long_waves",
+        "corCabelo": "Long",
+        "oculos": null,
+        "barba": null,
+        "cima": "corpete",
+        "corCima": "Pink",
+        "jaqueta": null,
+        "calca": "saia_rodada",
+        "corCalca": "Pink",
+        "sapato": "descalco"
+      }
+    },
+    {
+      "id": "encanador",
+      "nome": "Encanador",
+      "look": {
+        "chapeu": "bone_curto",
+        "corChapeu": "Red",
+        "oculos": null,
+        "barba": "moustache",
+        "corBarba": "Spiky",
+        "cima": "long_sleeved_shirt",
+        "corCima": "Red",
+        "jaqueta": "macacao",
+        "corJaqueta": "Low-cut Jeans",
+        "calca": "jeans",
+        "corCalca": "Low-cut Jeans",
+        "sapato": "boots",
+        "corSapato": "Long-sleeved shirt"
+      }
+    },
+    {
+      "id": "principe_deserto",
+      "nome": "Príncipe do deserto",
+      "look": {
+        "chapeu": "turbante",
+        "oculos": null,
+        "barba": null,
+        "cima": "tshirt",
+        "corCima": "Teal",
+        "jaqueta": "faixa",
+        "calca": "bombacha",
+        "corCalca": "White",
+        "sapato": "boots",
+        "corSapato": "Shorts"
+      }
+    },
+    {
+      "id": "heroi_floresta",
+      "nome": "Herói da floresta",
+      "look": {
+        "chapeu": "gorro_pontudo",
+        "cabelo": "side_swept",
+        "corCabelo": "Short",
+        "oculos": null,
+        "barba": null,
+        "cima": "long_sleeved_shirt",
+        "corCima": "White",
+        "jaqueta": "tunica",
+        "calca": "jeans",
+        "corCalca": "White",
+        "sapato": "boots",
+        "corSapato": "Shorts"
+      }
+    },
+    {
+      "id": "aprendiz",
+      "nome": "Aprendiz de bruxo",
+      "look": {
+        "chapeu": "cachecol",
+        "corChapeu": "Orange",
+        "oculos": "redondos",
+        "cabelo": "short",
+        "corCabelo": "Black",
+        "barba": null,
+        "cima": "long_sleeved_shirt",
+        "corCima": "White",
+        "jaqueta": "beca",
+        "calca": "jeans",
+        "corCalca": "Black",
+        "sapato": "sneakers",
+        "corSapato": "Black"
+      }
+    },
+    {
+      "id": "pequenino",
+      "nome": "Pequenino da colina",
+      "look": {
+        "chapeu": null,
+        "oculos": null,
+        "barba": null,
+        "cabelo": "mop",
+        "corCabelo": "Mop",
+        "cima": "long_sleeved_shirt",
+        "corCima": "White",
+        "jaqueta": "vest",
+        "corJaqueta": "Turtleneck",
+        "calca": "shorts",
+        "corCalca": "Shorts",
+        "sapato": "pes_peludos"
+      }
+    },
+    {
+      "id": "ajudante",
+      "nome": "Ajudante amarelo",
+      "look": {
+        "pele": "Amarela",
+        "chapeu": null,
+        "cabelo": null,
+        "barba": null,
+        "oculos": "lente_unica",
+        "cima": "sem_camisa",
+        "jaqueta": "macacao",
+        "corJaqueta": "Low-cut Jeans",
+        "calca": "jeans",
+        "corCalca": "Low-cut Jeans",
+        "sapato": "sneakers",
+        "corSapato": "Black"
+      }
+    },
+    {
+      "id": "elfo",
+      "nome": "Elfo do Noel",
+      "look": {
+        "chapeu": "gorro_guizo",
+        "oculos": null,
+        "barba": null,
+        "cima": "tunica_elfo",
+        "jaqueta": null,
+        "calca": "meia_listrada",
+        "sapato": "boots",
+        "corSapato": "Red"
+      }
+    },
+    {
+      "id": "duendinho",
+      "nome": "Duendinho azul",
+      "look": {
+        "pele": "Azul",
+        "chapeu": "gorro_mole",
+        "cabelo": null,
+        "barba": null,
+        "oculos": null,
+        "cima": "sem_camisa",
+        "jaqueta": null,
+        "calca": "jeans",
+        "corCalca": "White",
+        "sapato": "sneakers",
+        "corSapato": "White"
+      }
+    },
+    {
+      "id": "chocolateiro",
+      "nome": "Chocolateiro",
+      "look": {
+        "pele": "Laranja",
+        "chapeu": null,
+        "cabelo": "short",
+        "corCabelo": "Green",
+        "oculos": null,
+        "barba": null,
+        "cima": "listrada",
+        "corCima": "Black",
+        "jaqueta": "macacao",
+        "corJaqueta": "White",
+        "calca": "jeans",
+        "corCalca": "White",
+        "sapato": "boots",
+        "corSapato": "Black"
+      }
+    }
+  ]
+}

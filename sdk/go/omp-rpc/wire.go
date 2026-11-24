@@ -8034,6 +8034,8 @@ type PromptCommand struct {
 	// Images attached to the message.
 	Images            []ImageContent     `json:"images,omitempty"`
 	StreamingBehavior *StreamingBehavior `json:"streamingBehavior,omitempty"`
+	// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	From *string `json:"from,omitempty"`
 }
 
 // Prompt sends "prompt": Submit a prompt; acknowledged once admitted, completed by its `prompt_result`.
@@ -8049,6 +8051,8 @@ type SteerCommand struct {
 	Message string `json:"message"`
 	// Images attached to the message.
 	Images []ImageContent `json:"images,omitempty"`
+	// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	From *string `json:"from,omitempty"`
 }
 
 // Steer sends "steer": Queue a steering message.
@@ -8061,6 +8065,8 @@ type FollowUpCommand struct {
 	Message string `json:"message"`
 	// Images attached to the message.
 	Images []ImageContent `json:"images,omitempty"`
+	// Author of input from another participant; sent as a `collab-prompt` custom message carrying the name.
+	From *string `json:"from,omitempty"`
 }
 
 // FollowUp sends "follow_up": Queue a follow-up message.

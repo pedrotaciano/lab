@@ -3499,20 +3499,24 @@ class WireClient:
     def _listen(self, frame_type: str, listener: Callable[..., None]) -> Callable[[], None]:
         raise NotImplementedError
 
-    def steer(self, message: str, *, images: Sequence[ImageContent] | None = None) -> None:
+    def steer(self, message: str, *, images: Sequence[ImageContent] | None = None, from_: str | None = None) -> None:
         """Queue a steering message."""
         params: dict[str, object] = {}
         params["message"] = message
         if images is not None:
             params["images"] = list(images)
+        if from_ is not None:
+            params["from"] = from_
         self._command("steer", params)
 
-    def follow_up(self, message: str, *, images: Sequence[ImageContent] | None = None) -> None:
+    def follow_up(self, message: str, *, images: Sequence[ImageContent] | None = None, from_: str | None = None) -> None:
         """Queue a follow-up message."""
         params: dict[str, object] = {}
         params["message"] = message
         if images is not None:
             params["images"] = list(images)
+        if from_ is not None:
+            params["from"] = from_
         self._command("follow_up", params)
 
     def remove_queued_message(self, message: str, queue: QueuedMessageQueue) -> RemoveQueuedMessageResult:

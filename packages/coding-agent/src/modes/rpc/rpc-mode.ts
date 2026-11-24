@@ -20,6 +20,7 @@ import type { ImageContent } from "@oh-my-pi/pi-ai";
 import { toolWireSchema } from "@oh-my-pi/pi-ai/utils/schema";
 import { routedModelsAreEqual } from "@oh-my-pi/pi-catalog/models";
 import { $env, isRecord, logger, Snowflake, toError } from "@oh-my-pi/pi-utils";
+import { COLLAB_PROMPT_MESSAGE_TYPE, type CollabPromptDetails } from "@oh-my-pi/pi-wire";
 import { clearPluginRootsAndCaches, resolveActiveProjectRegistryPath } from "../../discovery/helpers";
 import {
 	type ExtensionAskDialogQuestion,
@@ -2117,6 +2118,36 @@ export async function runRpcMode(session: AgentSession, options: RpcModeOptions 
 			}
 			if (!isCurrent()) return "cancelled";
 			if (!text.trim() && !images?.length) return "local";
+			// Input from another participant takes the collab guest path: a `collab-prompt`
+			// custom message carrying its author, never a slash command or skill.
+			const from = command.type === "abort_and_prompt" ? undefined : command.from?.trim();
+			if (from && command.type !== "abort_and_prompt") {
+				const promptFrom = (streamingBehavior: "steer" | "followUp" | undefined, onPromptAdmitted?: () => void) =>
+					session.promptCustomMessage(
+						{
+							customType: COLLAB_PROMPT_MESSAGE_TYPE,
+							content: images?.length ? [{ type: "text", text }, ...images] : text,
+							display: true,
+							details: { from } satisfies CollabPromptDetails,
+							attribution: "user",
+						},
+						{ streamingBehavior, queueChipText: text, onPromptAdmitted },
+					);
+				if (command.type === "steer" || command.type === "follow_up") {
+					await promptFrom(command.type === "steer" ? "steer" : "followUp");
+					return "admitted";
+				}
+				if (!ticket) return "cancelled";
+				const streamingBehavior = command.streamingBehavior;
+				await watchAndReportPromptResult({
+					ticket,
+					startPrompt: onPromptAdmitted => promptFrom(streamingBehavior, onPromptAdmitted),
+					results: promptResults,
+					onError: onPromptError(command.id, command.type),
+					extensionUserMessageTracker,
+				});
+				return "admitted";
+			}
 			if (command.type === "steer") {
 				await session.steer(text, images);
 				return "admitted";

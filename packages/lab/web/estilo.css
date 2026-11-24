@@ -1,0 +1,2076 @@
+/* lab · the page. The visual language of the Laboratório POC (laboratorio/web/sala.css): its
+   tokens, day and night, the panels in paper with a 2 px border and a hard offset shadow, labels
+   in mono capitals in orange, buttons on keycaps, the main ones orange capsules. Orange
+   (#FF5100) only for what waits for you and for the main action. Fonts served from ./fontes. */
+
+/* ── Tokens (sala.css :root) ─────────────────────────────────────────────────────────────── */
+:root {
+	--laranja: #ff5100;
+	--laranja-escuro: #c23d00;
+	--noite: #29251e;
+	--pagina: #f7f6f3;
+	--chapa: #fdfdfc;
+	--poco: #f1f0ee;
+	--tinta: #29251e;
+	--mudo: #7a8481;
+	--fio: rgb(41 37 30 / 0.16);
+	--fio-forte: rgb(41 37 30 / 0.34);
+	--sombra: rgb(41 37 30 / 0.18);
+	--borda: var(--noite);
+	--sans: "Orbi Sans", system-ui, sans-serif;
+	--serif: "Orbi Sheriff", Georgia, serif;
+	--mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+	--sa-t: env(safe-area-inset-top, 0px);
+	--sa-r: env(safe-area-inset-right, 0px);
+	--sa-b: env(safe-area-inset-bottom, 0px);
+	--sa-l: env(safe-area-inset-left, 0px);
+	--status-trabalhando: #4e70c6;
+	--status-trabalhando-tinta: #fff;
+	--status-esperando: var(--laranja);
+	--status-esperando-tinta: var(--noite);
+	--status-esperando-texto: var(--laranja-escuro);
+	--status-entregue: #027539;
+	--status-entregue-tinta: #fff;
+	--status-feito: #7a8481;
+	--status-feito-tinta: #fff;
+	--status-erro: var(--noite);
+	--status-erro-tinta: #fdfdfc;
+	--mudo-texto: color-mix(in srgb, #7a8481 70%, #29251e);
+	--bloqueio: #d7141a;
+	--bloqueio-texto: #b3100f;
+	--chat-w: 420px;
+	--lateral-w: 280px;
+	color-scheme: light;
+}
+
+html.is-noite {
+	--status-trabalhando: #10c4e4;
+	--status-trabalhando-tinta: var(--noite);
+	--status-esperando-texto: var(--laranja);
+	--status-entregue: color-mix(in srgb, #027539 45%, #f1f2ee);
+	--status-entregue-tinta: var(--noite);
+	--status-feito: color-mix(in srgb, #f1f2ee 60%, #29251e);
+	--status-feito-tinta: var(--noite);
+	--status-erro: #f1f2ee;
+	--status-erro-tinta: var(--noite);
+	--pagina: var(--noite);
+	--chapa: color-mix(in srgb, #f1f2ee 8%, #29251e);
+	--poco: color-mix(in srgb, #f1f2ee 12%, #29251e);
+	--tinta: #f1f2ee;
+	--mudo: rgb(241 242 238 / 0.68);
+	--fio: rgb(241 242 238 / 0.14);
+	--fio-forte: rgb(241 242 238 / 0.3);
+	--sombra: rgb(0 0 0 / 0.45);
+	--borda: rgb(241 242 238 / 0.26);
+	--mudo-texto: rgb(241 242 238 / 0.72);
+	--bloqueio: #ff4136;
+	--bloqueio-texto: #ff6b62;
+	color-scheme: dark;
+}
+
+/* collab-web's Transcript and tool cards read these names: the POC's values behind them. */
+:root,
+html.is-noite {
+	--bg: var(--pagina);
+	--panel: var(--chapa);
+	--bg-raised: var(--chapa);
+	--bg-inset: var(--poco);
+	--bg-overlay: var(--chapa);
+	--hover: var(--fio);
+	--selected: var(--fio);
+	--fg: var(--tinta);
+	--fg-muted: var(--mudo-texto);
+	--fg-faint: var(--mudo);
+	--fg-inverse: var(--chapa);
+	--accent: var(--laranja-escuro);
+	--accent-fg: var(--noite);
+	--accent-muted: color-mix(in srgb, var(--laranja) 12%, transparent);
+	--ok: var(--status-entregue);
+	--live: var(--status-entregue);
+	--warn: var(--laranja-escuro);
+	--err: var(--bloqueio-texto);
+	--border: var(--fio);
+	--border-strong: var(--fio-forte);
+	--ring: var(--laranja);
+	--font-ui: var(--sans);
+	--font-mono: var(--mono);
+	--radius-sm: 0;
+	--radius: 0;
+	--radius-lg: 0;
+	--radius-xl: 0;
+	--shadow-card: 3px 3px 0 var(--sombra);
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────────────────────── */
+* {
+	box-sizing: border-box;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+html,
+body {
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	background: var(--pagina);
+	color: var(--tinta);
+	font-family: var(--sans);
+	font-size: 14px;
+	line-height: 1.45;
+	-webkit-font-smoothing: antialiased;
+	-webkit-tap-highlight-color: transparent;
+}
+
+#raiz {
+	height: var(--altura, 100dvh);
+}
+
+p,
+h2,
+ul {
+	margin: 0;
+}
+
+ul {
+	padding: 0;
+	list-style: none;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+:is(button, a, input, textarea, select):focus-visible {
+	outline: 2px solid var(--laranja);
+	outline-offset: 2px;
+}
+
+button,
+kbd {
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+@keyframes piscar {
+	50% {
+		opacity: 0.35;
+	}
+}
+
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation: none !important;
+		transition: none !important;
+	}
+}
+
+/* ── The house's pieces ──────────────────────────────────────────────────────────────────── */
+.painel {
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	box-shadow: 4px 4px 0 var(--sombra);
+}
+
+.rotulo {
+	color: var(--laranja);
+	font-family: var(--mono);
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 4px;
+	border: 1.5px solid currentColor;
+	border-bottom-width: 3px;
+	border-radius: 4px;
+	font: 600 10px/1 var(--sans);
+}
+
+.botao {
+	display: inline-flex;
+	font-family: var(--sans);
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 36px;
+	padding: 0 14px;
+	border: 2px solid var(--noite);
+	background: var(--laranja);
+	color: var(--noite);
+	box-shadow: 3px 3px 0 var(--noite);
+	font-size: 13px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.botao:active:not(:disabled) {
+	transform: translate(2px, 2px);
+	box-shadow: 1px 1px 0 var(--noite);
+}
+
+.botao:disabled {
+	border-color: var(--fio-forte);
+	background: var(--poco);
+	color: var(--mudo);
+	box-shadow: none;
+	cursor: default;
+}
+
+.botao--claro {
+	border-color: var(--borda);
+	background: var(--chapa);
+	color: var(--tinta);
+	box-shadow: 3px 3px 0 var(--sombra);
+}
+
+.botao--claro:hover:not(:disabled) {
+	border-color: var(--laranja);
+}
+
+html.is-noite .botao:not(.botao--claro):not(:disabled) {
+	box-shadow: 3px 3px 0 rgb(0 0 0 / 0.45);
+}
+
+.botao--p {
+	min-height: 28px;
+	padding: 0 10px;
+	font-size: 12px;
+	box-shadow: 2px 2px 0 var(--sombra);
+}
+
+.link {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--mudo);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-transform: uppercase;
+}
+
+.link:hover:not(:disabled) {
+	color: var(--tinta);
+}
+
+/* A square tool button (the chat header's .chat__icone). */
+.icone {
+	display: grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	flex-shrink: 0;
+	padding: 0;
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	box-shadow: 2px 2px 0 var(--sombra);
+	font: 600 14px/1 var(--mono);
+}
+
+.icone:hover:not(:disabled) {
+	border-color: var(--laranja);
+}
+
+.icone:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.icone--quieto {
+	width: 24px;
+	height: 24px;
+	border-color: transparent;
+	background: none;
+	box-shadow: none;
+	color: var(--mudo);
+}
+
+.icone--quieto:hover:not(:disabled) {
+	border-color: transparent;
+	color: var(--laranja);
+}
+
+/* A face in its frame; an agent's frame is orange (the POC's `little`). */
+.moldura {
+	display: inline-flex;
+	flex-shrink: 0;
+	padding: 2px;
+	border: 2px solid var(--borda);
+	background: #dcebee;
+}
+
+html.is-noite .moldura {
+	background: color-mix(in srgb, #dcebee 28%, var(--noite));
+}
+
+.moldura.is-agente {
+	border-color: var(--laranja);
+}
+
+.rosto :is(canvas, img) {
+	display: block;
+	image-rendering: pixelated;
+}
+
+.rosto img {
+	object-fit: cover;
+	image-rendering: auto;
+}
+
+.rosto--p {
+	padding: 1px;
+}
+
+.rosto--p :is(canvas, img) {
+	width: 16px;
+	height: 20px;
+}
+
+.rosto--m :is(canvas, img) {
+	width: 32px;
+	height: 40px;
+}
+
+.rosto--g {
+	padding: 4px;
+	box-shadow: 4px 4px 0 var(--sombra);
+}
+
+.rosto--g :is(canvas, img) {
+	width: 80px;
+	height: 100px;
+}
+
+/* The pixel spinner (.pixspin): 8 pixels round an 8 × 8 box, one lit. */
+.pixspin {
+	--pix-anel: color-mix(in srgb, var(--laranja) 26%, transparent);
+	--pix-rastro: color-mix(in srgb, var(--laranja) 62%, transparent);
+	position: relative;
+	display: inline-block;
+	flex-shrink: 0;
+	width: 8px;
+	height: 8px;
+}
+
+.pixspin::before,
+.pixspin::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 2px;
+	height: 2px;
+}
+
+.pixspin::before {
+	box-shadow:
+		2px 0 0 0 var(--pix-anel),
+		4px 0 0 0 var(--pix-anel),
+		6px 2px 0 0 var(--pix-anel),
+		6px 4px 0 0 var(--pix-anel),
+		4px 6px 0 0 var(--pix-anel),
+		2px 6px 0 0 var(--pix-anel),
+		0 4px 0 0 var(--pix-anel),
+		0 2px 0 0 var(--pix-anel);
+}
+
+.pixspin::after {
+	box-shadow:
+		2px 0 0 0 var(--laranja),
+		0 2px 0 0 var(--pix-rastro);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.pixspin::after {
+		animation: pixspin 0.96s infinite;
+		animation-timing-function: steps(1, end);
+	}
+}
+
+@keyframes pixspin {
+	0%,
+	100% {
+		box-shadow:
+			2px 0 0 0 var(--laranja),
+			0 2px 0 0 var(--pix-rastro);
+	}
+	12.5% {
+		box-shadow:
+			4px 0 0 0 var(--laranja),
+			2px 0 0 0 var(--pix-rastro);
+	}
+	25% {
+		box-shadow:
+			6px 2px 0 0 var(--laranja),
+			4px 0 0 0 var(--pix-rastro);
+	}
+	37.5% {
+		box-shadow:
+			6px 4px 0 0 var(--laranja),
+			6px 2px 0 0 var(--pix-rastro);
+	}
+	50% {
+		box-shadow:
+			4px 6px 0 0 var(--laranja),
+			6px 4px 0 0 var(--pix-rastro);
+	}
+	62.5% {
+		box-shadow:
+			2px 6px 0 0 var(--laranja),
+			4px 6px 0 0 var(--pix-rastro);
+	}
+	75% {
+		box-shadow:
+			0 4px 0 0 var(--laranja),
+			2px 6px 0 0 var(--pix-rastro);
+	}
+	87.5% {
+		box-shadow:
+			0 2px 0 0 var(--laranja),
+			0 4px 0 0 var(--pix-rastro);
+	}
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────────────────────── */
+.app {
+	display: grid;
+	grid-template-columns: var(--lateral-w) minmax(0, 1fr) var(--chat-w);
+	height: 100%;
+}
+
+.app__lateral {
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	border-right: 2px solid var(--borda);
+	background: var(--chapa);
+	scrollbar-width: thin;
+}
+
+.app__meio {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+.app__painel {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+.app__painel--rolar {
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+/* The tabs (the POC's .chat__abas): mono capitals, the open one underlined in orange. */
+.abas {
+	display: flex;
+	flex-shrink: 0;
+	gap: 8px;
+	padding: 0 14px;
+	box-shadow: inset 0 -2px 0 var(--borda);
+	background: var(--chapa);
+}
+
+.aba {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 13px 5px 11px;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: none;
+	color: var(--mudo);
+	font: 500 11px/13px var(--mono);
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.aba:hover {
+	color: var(--tinta);
+}
+
+.aba[aria-selected="true"] {
+	border-bottom-color: var(--laranja);
+	color: var(--tinta);
+}
+
+/* How many wait for you: an orange seal beside the tab's name. */
+.aba__selo {
+	min-width: 16px;
+	padding: 0 4px;
+	background: var(--status-esperando);
+	color: var(--status-esperando-tinta);
+	font: 700 10px/14px var(--mono);
+	text-align: center;
+}
+
+/* The connection lost: the POC's orange banner, over the middle. */
+.banner {
+	position: absolute;
+	top: 56px;
+	left: 50%;
+	z-index: 5;
+	translate: -50% 0;
+	padding: 9px 14px;
+	border: 2px solid var(--noite);
+	background: var(--laranja);
+	color: var(--noite);
+	box-shadow: 4px 4px 0 var(--noite);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 18px;
+	white-space: nowrap;
+}
+
+.carregando {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 13px;
+	height: 100%;
+}
+
+.carregando__barra {
+	display: flex;
+	gap: 3px;
+	padding: 3px;
+	border: 2px solid var(--borda);
+}
+
+.carregando__barra span {
+	width: 13px;
+	height: 13px;
+	background: var(--fio);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.carregando__barra span {
+		animation: piscar 1s steps(2) infinite;
+	}
+
+	.carregando__barra span:nth-child(even) {
+		animation-delay: 0.5s;
+	}
+}
+
+/* ── The room ────────────────────────────────────────────────────────────────────────────── */
+.sala {
+	position: absolute;
+	inset: 0;
+}
+
+.sala__cena {
+	display: block;
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+	cursor: pointer;
+}
+
+/* ── Times e chats ───────────────────────────────────────────────────────────────────────── */
+.times {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 14px 10px calc(14px + var(--sa-b));
+}
+
+.times__titulo {
+	padding: 0 2px;
+}
+
+.times__lista {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.time {
+	border: 2px solid var(--fio-forte);
+	background: var(--chapa);
+}
+
+.time.is-aberto {
+	border-color: var(--borda);
+	box-shadow:
+		inset 4px 0 0 var(--laranja),
+		3px 3px 0 var(--sombra);
+}
+
+.time__cabeca {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 44px;
+	padding: 5px 6px 5px 10px;
+}
+
+.time__texto {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.time__nome,
+.time__pasta {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.time__nome {
+	font: 700 13px/18px var(--mono);
+}
+
+.time__pasta {
+	color: var(--mudo-texto);
+	font: 11px/16px var(--mono);
+}
+
+.time.is-ausente {
+	border-style: dashed;
+}
+
+.time.is-ausente .time__nome {
+	color: var(--mudo);
+}
+
+.time__erro {
+	padding: 0 10px 6px;
+	color: var(--bloqueio-texto);
+	font: 11px/16px var(--mono);
+}
+
+.time__chats {
+	display: flex;
+	flex-direction: column;
+	border-top: 1px solid var(--fio);
+}
+
+.chat-linha {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding-right: 4px;
+}
+
+.chat-linha + .chat-linha {
+	border-top: 1px solid var(--fio);
+}
+
+.chat-linha[aria-current="true"] {
+	background: var(--poco);
+}
+
+.chat-linha__abrir {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	min-height: 40px;
+	padding: 5px 4px 5px 10px;
+	border: 0;
+	background: none;
+	text-align: left;
+}
+
+.chat-linha__abrir:hover .chat-linha__nome {
+	text-decoration: underline;
+	text-decoration-color: var(--laranja);
+	text-underline-offset: 3px;
+}
+
+.chat-linha__texto {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.chat-linha__nome,
+.chat-linha__estado {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.chat-linha__nome {
+	font-size: 13px;
+	line-height: 18px;
+}
+
+.chat-linha__papel {
+	margin-left: 6px;
+	color: var(--mudo);
+	font-size: 12px;
+}
+
+/* Who · how, with a square in the state's colour. */
+.chat-linha__estado {
+	color: var(--mudo-texto);
+	font: 11px/16px var(--mono);
+}
+
+.chat-linha__estado::before {
+	content: "";
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin: 0 6px 1px 0;
+	background: var(--status-feito);
+}
+
+.chat-linha[data-status="parado"] .chat-linha__abrir {
+	opacity: 0.7;
+}
+
+.chat-linha[data-status="livre"] .chat-linha__estado::before {
+	background: var(--tinta);
+}
+
+.chat-linha[data-status="trabalhando"] .chat-linha__estado::before {
+	background: var(--status-trabalhando);
+}
+
+.chat-linha[data-status="esperando"] .chat-linha__estado {
+	color: var(--status-esperando-texto);
+}
+
+.chat-linha[data-status="esperando"] .chat-linha__estado::before {
+	width: 8px;
+	height: 8px;
+	margin-bottom: 0;
+	background: var(--status-esperando);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.chat-linha[data-status="esperando"] .chat-linha__estado::before {
+		animation: piscar 1s steps(2) infinite;
+	}
+}
+
+.chat-linha[data-status="erro"] .chat-linha__estado::before {
+	border: 1.5px dashed var(--status-erro);
+	background: none;
+}
+
+.chat-linha__fechar {
+	opacity: 0;
+}
+
+.chat-linha:is(:hover, :focus-within, [aria-current="true"]) .chat-linha__fechar {
+	opacity: 1;
+}
+
+@media (pointer: coarse) {
+	.chat-linha__fechar {
+		opacity: 1;
+	}
+}
+
+.times__novo {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 36px;
+	padding: 0 10px;
+	border: 2px dashed var(--fio-forte);
+	background: none;
+	color: var(--mudo-texto);
+	font: 12px var(--mono);
+	white-space: nowrap;
+}
+
+.times__novo:hover {
+	border-color: var(--laranja);
+	color: var(--tinta);
+}
+
+.pessoas {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 14px;
+	padding: 0 2px;
+}
+
+.pessoas__lista {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.pessoas__lista li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.pessoas__nome {
+	overflow: hidden;
+	font-size: 13px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ── The folder picker ───────────────────────────────────────────────────────────────────── */
+.dialogo__fundo {
+	position: fixed;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	padding: 16px;
+	background: rgb(41 37 30 / 0.34);
+}
+
+.dialogo {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: min(480px, 100%);
+	max-height: min(640px, calc(var(--altura, 100dvh) - 32px));
+	padding: 16px;
+}
+
+.dialogo__cabeca,
+.dialogo__pe {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.dialogo__alvo {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--mudo-texto);
+	font: 12px/16px var(--mono);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.dialogo__erro {
+	color: var(--bloqueio-texto);
+	font: 12px/17px var(--mono);
+}
+
+.pastas {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	border: 2px solid var(--borda);
+}
+
+.pastas__onde {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px;
+	border-bottom: 1px solid var(--fio);
+	background: var(--poco);
+}
+
+.pastas__caminho {
+	flex: 1;
+	min-width: 0;
+	height: 32px;
+	padding: 0 8px;
+	border: 2px solid transparent;
+	border-radius: 0;
+	background: none;
+	color: var(--tinta);
+	font: 12px/16px var(--mono);
+	text-overflow: ellipsis;
+}
+
+.pastas__caminho:focus {
+	border-color: var(--laranja);
+	background: var(--chapa);
+	outline: none;
+}
+
+.pastas__lista {
+	min-height: 120px;
+	max-height: 320px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.pastas__item {
+	display: flex;
+}
+
+.pastas__item + .pastas__item {
+	border-top: 1px solid var(--fio);
+}
+
+.pastas__pasta {
+	flex: 1;
+	min-width: 0;
+	min-height: 36px;
+	padding: 0 10px;
+	overflow: hidden;
+	border: 0;
+	background: none;
+	font: 13px/18px var(--mono);
+	text-align: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pastas__pasta:hover {
+	background: var(--poco);
+}
+
+.pastas__pasta[aria-pressed="true"] {
+	background: color-mix(in srgb, var(--laranja) 12%, var(--chapa));
+	box-shadow: inset 4px 0 0 var(--laranja);
+}
+
+.pastas__entrar {
+	width: 36px;
+	border: 0;
+	border-left: 1px solid var(--fio);
+	background: none;
+	color: var(--mudo);
+	font: 15px/1 var(--mono);
+}
+
+.pastas__entrar:hover {
+	color: var(--laranja);
+}
+
+.pastas__vazia {
+	padding: 12px 10px;
+	color: var(--mudo-texto);
+	font-size: 12px;
+}
+
+.campo {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.rotulo-campo {
+	color: var(--mudo-texto);
+	font: 500 11px/13px var(--mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.campo :is(input, select, textarea) {
+	width: 100%;
+	min-height: 36px;
+	padding: 7px 9px;
+	border: 2px solid var(--borda);
+	border-radius: 0;
+	background: var(--poco);
+	color: var(--tinta);
+	font: 14px/20px var(--sans);
+}
+
+.campo textarea {
+	resize: vertical;
+}
+
+.campo :is(input, select, textarea):focus {
+	border-color: var(--laranja);
+	outline: none;
+}
+
+/* ── The chat ────────────────────────────────────────────────────────────────────────────── */
+.chat {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	padding-right: var(--sa-r);
+	border-left: 2px solid var(--borda);
+	background: var(--chapa);
+}
+
+.chat--vazio {
+	align-items: center;
+	justify-content: center;
+}
+
+.chat__sem {
+	color: var(--mudo-texto);
+	font: 12px/16px var(--mono);
+}
+
+.chat__cabeca {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-height: 72px;
+	padding: 10px 14px;
+	padding-top: calc(10px + var(--sa-t));
+	border-bottom: 2px solid var(--borda);
+}
+
+.chat__quem {
+	flex: 1;
+	min-width: 0;
+}
+
+.chat__nome {
+	overflow: hidden;
+	font-size: 18px;
+	line-height: 22px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.chat__papel {
+	margin-left: 6px;
+	color: var(--mudo);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.chat__status {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--mudo-texto);
+	font: 11px/15px var(--mono);
+	white-space: nowrap;
+}
+
+.chat__status::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	flex-shrink: 0;
+	background: var(--mudo);
+}
+
+.chat__status[data-status="livre"]::before {
+	background: var(--tinta);
+}
+
+.chat__status[data-status="trabalhando"]::before {
+	background: var(--status-trabalhando);
+}
+
+.chat__status[data-status="esperando"] {
+	color: var(--status-esperando-texto);
+}
+
+.chat__status[data-status="esperando"]::before {
+	background: var(--status-esperando);
+}
+
+.chat__status[data-status="erro"]::before {
+	border: 1.5px dashed var(--status-erro);
+	background: none;
+}
+
+.chat__modelo {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* The omp crashed: a strip under the header, the way back on its right. */
+.aviso {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 14px;
+	border-bottom: 2px solid var(--borda);
+	background: var(--poco);
+	font: 12px/17px var(--mono);
+}
+
+.aviso::before {
+	content: "✕";
+	flex-shrink: 0;
+	font-weight: 700;
+}
+
+.aviso__texto {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.chat__corpo {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+.chat__pe {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px 12px calc(12px + var(--sa-b));
+}
+
+.chat__tentar {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.chat__atividade {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	padding: 0 2px;
+	color: var(--mudo-texto);
+	font: 11px/15px var(--mono);
+}
+
+.chat__atividade-texto {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.chat__todo {
+	flex-shrink: 0;
+	color: var(--tinta);
+}
+
+.chat__erro {
+	color: var(--bloqueio-texto);
+	font: 11px/15px var(--mono);
+}
+
+/* Sent while it works: a strip per message over the box, "na fila". */
+.fila {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.fila__item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	padding: 4px 8px;
+	border: 1.5px dashed var(--fio-forte);
+	font-size: 13px;
+	line-height: 18px;
+}
+
+.fila__marca {
+	flex-shrink: 0;
+	color: var(--mudo-texto);
+	font: 500 10px/12px var(--mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.fila__texto {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ── The transcript (collab-web's), in the POC's bubbles ─────────────────────────────────── */
+/* Scoped under .chat__corpo so these win over transcript.css whatever the bundle's order. */
+.chat__corpo .tr-root {
+	padding: 16px 14px 8px;
+	font-family: var(--sans);
+	font-size: 14px;
+	line-height: 20px;
+}
+
+/* The model and its effort are in the header; earlier rows mount on scrolling up. */
+.chat__corpo .tr-root :is(.tr-empty, .tr-earlier, .tr-row--marker) {
+	display: none;
+}
+
+.chat__corpo .tr-row {
+	display: grid;
+	grid-template-columns: 40px minmax(0, 1fr);
+	gap: 0 10px;
+	padding: 6px 0;
+	/* The history arrives whole (a reconnect replays it): rows appear in place, no rise. */
+	animation: none;
+}
+
+.chat__corpo .tr-gutter,
+.chat__corpo .tr-row--user .tr-gutter {
+	padding-top: 0;
+	text-align: left;
+}
+
+/* A run of the agent's rows: its face once, at the first (the POC's "seguida"). */
+.chat__corpo .tr-row--assistant + .tr-row--assistant .tr-gutter > .autoria {
+	visibility: hidden;
+}
+
+.autoria {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	max-width: 40px;
+}
+
+.autoria__nome {
+	max-width: 40px;
+	overflow: hidden;
+	color: var(--mudo);
+	font: 9px/12px var(--mono);
+	letter-spacing: 0.04em;
+	text-overflow: ellipsis;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* Your messages: the POC's .msg--voce, an orange edge on a light orange paper. */
+.chat__corpo .tr-row--user .tr-body {
+	padding: 8px 11px;
+	border: 2px solid var(--laranja);
+	border-radius: 0;
+	background: color-mix(in srgb, var(--laranja) 12%, var(--chapa));
+	box-shadow: none;
+}
+
+/* Someone else's (Carly, a member): the POC's other bubble, paper with the ink border. */
+.chat__corpo .tr-row--user:has(.autoria--outro) .tr-body {
+	border-color: var(--borda);
+	background: var(--chapa);
+	box-shadow: 3px 3px 0 var(--sombra);
+}
+
+.chat__corpo .tr-row--assistant .tr-body {
+	overflow-wrap: anywhere;
+}
+
+.chat__corpo .tv-card {
+	border-radius: 0;
+}
+
+.chat__corpo .tr-shimmer {
+	color: var(--mudo-texto);
+	font: 11px/15px var(--mono);
+}
+
+.chat__corpo .tr-chip {
+	border-radius: 0;
+}
+
+.chat__corpo .tr-root :is(code, pre) {
+	font-family: var(--mono);
+}
+
+/* Loading the history: bars where the rows will be. */
+.esqueleto .tr-body {
+	gap: 6px;
+}
+
+.esqueleto__linha {
+	display: block;
+	height: 12px;
+	background: var(--poco);
+}
+
+.esqueleto .tr-row--user .tr-body {
+	width: 70%;
+	border-color: var(--fio-forte);
+	background: none;
+}
+
+.esqueleto .tr-gutter::before {
+	content: "";
+	display: block;
+	width: 22px;
+	height: 26px;
+	border: 2px solid var(--fio-forte);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.esqueleto__linha {
+		animation: piscar 1.2s steps(4) infinite;
+	}
+}
+
+/* ── The prompt box (the POC's .chat__entrada) ───────────────────────────────────────────── */
+.entrada {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	box-shadow: 3px 3px 0 var(--sombra);
+}
+
+.entrada:focus-within {
+	border-color: var(--laranja);
+}
+
+.entrada__campo {
+	display: block;
+	width: 100%;
+	min-height: 42px;
+	padding: 11px 12px 6px;
+	border: 0;
+	background: transparent;
+	color: var(--tinta);
+	font: 14px/20px var(--sans);
+	resize: none;
+}
+
+.entrada__campo:focus-visible {
+	outline: none;
+}
+
+.entrada__campo::placeholder {
+	color: var(--mudo);
+}
+
+.entrada__acoes {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 0 6px 6px;
+}
+
+.entrada__envio {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: auto;
+}
+
+.entrada__parar {
+	min-height: 28px;
+	margin-right: 4px;
+	padding: 0 10px;
+	font-size: 12px;
+	box-shadow: 2px 2px 0 var(--sombra);
+}
+
+.entrada__enviar {
+	min-width: 32px;
+	min-height: 32px;
+	padding: 0;
+	box-shadow: 2px 2px 0 var(--noite);
+}
+
+.entrada__enviar svg {
+	width: 14px;
+	height: 14px;
+}
+
+@media (pointer: coarse) {
+	.entrada__parar,
+	.entrada__enviar {
+		min-width: 44px;
+		min-height: 44px;
+	}
+}
+
+/* ── The ask card (the POC's .msg--pergunta) ─────────────────────────────────────────────── */
+.pergunta {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	max-height: min(60vh, calc(var(--altura, 100dvh) - 200px));
+	padding: 16px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.pergunta.is-aberta {
+	border-color: var(--laranja);
+	box-shadow: 3px 3px 0 var(--laranja);
+}
+
+.pergunta__texto {
+	font-size: 17px;
+	line-height: 23px;
+}
+
+.pergunta__form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.pergunta__p {
+	font-size: 14px;
+	line-height: 20px;
+}
+
+.pergunta__p--titulo {
+	font-weight: 600;
+}
+
+.pergunta__p--item::before {
+	content: "· ";
+	color: var(--mudo);
+}
+
+.pergunta__ajuda,
+.pergunta__descricao {
+	display: block;
+	color: var(--mudo-texto);
+	font-size: 12px;
+	line-height: 16px;
+}
+
+.pergunta__detalhe {
+	margin: 0;
+	max-height: 160px;
+	padding: 7px 9px;
+	overflow: auto;
+	background: var(--poco);
+	font: 12px/17px var(--mono);
+	white-space: pre-wrap;
+}
+
+.pergunta__imagem {
+	max-width: 100%;
+	border: 2px solid var(--borda);
+}
+
+.pergunta__grupo {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.pergunta__legenda {
+	padding: 0;
+	margin-bottom: 8px;
+	font-size: 17px;
+	line-height: 23px;
+}
+
+.pergunta__opcoes {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.pergunta__opcao {
+	display: flex;
+	align-items: flex-start;
+	gap: 9px;
+	width: 100%;
+	min-height: 44px;
+	padding: 10px 12px;
+	border: 2px solid var(--fio-forte);
+	background: var(--pagina);
+	color: var(--tinta);
+	font: 14px/20px var(--sans);
+	text-align: left;
+}
+
+.pergunta__opcao:hover:not(:disabled) {
+	border-color: var(--laranja);
+}
+
+.pergunta__opcao:active:not(:disabled) {
+	transform: translate(1px, 1px);
+}
+
+.pergunta__opcao:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.pergunta__marca {
+	display: inline-grid;
+	place-items: center;
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	border: 1.5px solid var(--fio-forte);
+	color: var(--mudo);
+	font: 600 11px/1 var(--mono);
+}
+
+.pergunta__opcao.is-marcada {
+	border-color: var(--borda);
+}
+
+.pergunta__opcao.is-marcada .pergunta__marca {
+	border-color: var(--noite);
+	background: var(--laranja);
+	color: var(--noite);
+	font-size: 0;
+}
+
+.pergunta__opcao.is-marcada .pergunta__marca::before {
+	content: "✓";
+	font-size: 12px;
+}
+
+.pergunta__outra {
+	width: 100%;
+	min-height: 44px;
+	padding: 10px 12px;
+	border: 2px dashed var(--fio-forte);
+	border-radius: 0;
+	background: var(--pagina);
+	color: var(--tinta);
+	font: 14px/20px var(--sans);
+}
+
+.pergunta__outra:focus,
+.pergunta__outra.is-marcada {
+	border-style: solid;
+	border-color: var(--laranja);
+	outline: none;
+}
+
+.pergunta__area {
+	width: 100%;
+	padding: 8px 10px;
+	border: 2px solid var(--borda);
+	border-radius: 0;
+	background: var(--poco);
+	color: var(--tinta);
+	font: 14px/20px var(--sans);
+	resize: vertical;
+}
+
+.pergunta__pe {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.pergunta__erro {
+	color: var(--bloqueio-texto);
+	font: 12px/17px var(--mono);
+}
+
+/* ── Tarefas ─────────────────────────────────────────────────────────────────────────────── */
+.tarefas {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	align-content: start;
+	align-items: start;
+	gap: 16px;
+	min-height: 100%;
+	padding: 16px 14px 20px;
+}
+
+.tarefas--vazio {
+	grid-template-columns: minmax(0, 1fr);
+	place-content: center;
+	place-items: center;
+}
+
+.tarefas__nada {
+	color: var(--mudo-texto);
+	font: 12px/16px var(--mono);
+}
+
+.tarefas__coluna {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-height: 0;
+	padding-top: 8px;
+	border-top: 3px solid var(--fio-forte);
+}
+
+.tarefas__coluna--trabalhando {
+	border-top-color: var(--status-trabalhando);
+}
+
+.tarefas__coluna--esperando {
+	border-top-color: var(--status-esperando);
+}
+
+.tarefas__coluna--pronto {
+	border-top-color: var(--status-entregue);
+}
+
+.tarefas__cabeca {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	color: var(--tinta);
+	font: 500 11px/13px var(--mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.tarefas__n {
+	min-width: 20px;
+	padding: 1px 5px;
+	border: 1.5px solid currentColor;
+	font-size: 10px;
+	text-align: center;
+}
+
+.tarefas__cartoes {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-height: calc(var(--altura, 100dvh) - 140px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 0 4px 4px 0;
+	scrollbar-width: thin;
+}
+
+.tarefas__cartao {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	padding: 8px 10px;
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	box-shadow: 2px 2px 0 var(--sombra);
+	color: var(--tinta);
+	text-align: left;
+}
+
+.tarefas__cartao:hover,
+.tarefas__cartao:focus-visible {
+	border-color: var(--laranja);
+}
+
+.tarefas__quem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.tarefas__nome {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	font-size: 13px;
+	line-height: 18px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tarefas__time,
+.tarefas__hora {
+	color: var(--mudo-texto);
+	font: 11px/16px var(--mono);
+}
+
+.tarefas__linha {
+	display: -webkit-box;
+	overflow: hidden;
+	font-size: 13px;
+	line-height: 18px;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.tarefas__linha--esperando {
+	color: var(--status-esperando-texto);
+}
+
+.tarefas__linha--resposta {
+	color: var(--mudo-texto);
+	-webkit-line-clamp: 3;
+}
+
+.tarefas__atividade {
+	overflow: hidden;
+	color: var(--mudo-texto);
+	font: 11px/15px var(--mono);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* The checklist: a pixel per step, lit when done (the POC's progress pixels). */
+.tarefas__todo {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font: 500 11px/15px var(--mono);
+}
+
+.tarefas__passos {
+	display: flex;
+	gap: 2px;
+}
+
+.tarefas__passos span {
+	width: 6px;
+	height: 6px;
+	background: var(--fio-forte);
+}
+
+.tarefas__passos span.is-feito {
+	background: var(--status-trabalhando);
+}
+
+/* ── Voice (the POC's .voz-tela) ─────────────────────────────────────────────────────────── */
+.voz {
+	position: absolute;
+	inset: 0;
+	z-index: 6;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: calc(22px + var(--sa-t)) 20px calc(24px + var(--sa-b));
+	background: var(--chapa);
+	text-align: center;
+}
+
+.voz__nome {
+	font-size: 24px;
+	line-height: 30px;
+}
+
+.voz__estado {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 14px;
+	color: var(--mudo-texto);
+	font: 11px/14px var(--mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.voz__ponto {
+	width: 7px;
+	height: 7px;
+	background: var(--mudo);
+}
+
+.voz[data-fase="ouvindo"] .voz__ponto {
+	background: var(--status-entregue);
+}
+
+.voz[data-fase="trabalhando"] .voz__ponto {
+	background: var(--status-trabalhando);
+}
+
+.voz[data-fase="falando"] .voz__estado {
+	color: var(--status-esperando-texto);
+}
+
+.voz[data-fase="falando"] .voz__ponto {
+	background: var(--laranja);
+}
+
+.voz[data-fase="mudo"] .voz__ponto {
+	border: 1.5px solid var(--mudo);
+	background: none;
+}
+
+.voz:is([data-fase="caiu"], [data-fase="erro"]) .voz__ponto {
+	border: 1.5px dashed var(--status-erro);
+	background: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.voz[data-fase="conectando"] .voz__ponto {
+		animation: piscar 1s steps(2) infinite;
+	}
+}
+
+.voz__palco {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	min-height: 0;
+}
+
+/* The mic level: a bar in the well, orange while you speak. */
+.voz__nivel {
+	width: 160px;
+	height: 8px;
+	padding: 1px;
+	border: 2px solid var(--borda);
+}
+
+.voz__nivel span {
+	display: block;
+	width: calc(var(--nivel, 0) * 100%);
+	height: 100%;
+	background: var(--laranja);
+}
+
+.voz[data-fase="mudo"] .voz__nivel {
+	border-color: var(--fio-forte);
+}
+
+.voz__legenda {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	width: 100%;
+	max-width: 34ch;
+	min-height: 66px;
+	margin-bottom: 14px;
+	font-size: 15px;
+	line-height: 21px;
+}
+
+.voz__quem {
+	color: var(--mudo-texto);
+	font: 10px/14px var(--mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.voz__frase {
+	display: -webkit-box;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+}
+
+.voz__erro {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-width: 34ch;
+	margin-bottom: 14px;
+	padding: 8px 12px;
+	border: 2px solid var(--laranja-escuro);
+	background: color-mix(in srgb, var(--laranja) 12%, var(--chapa));
+	font: 12px/17px var(--mono);
+}
+
+.voz__motivo {
+	color: var(--mudo-texto);
+}
+
+.voz__controles {
+	display: flex;
+	align-items: center;
+	gap: 22px;
+}
+
+.voz__botao {
+	display: grid;
+	place-items: center;
+	width: 52px;
+	height: 52px;
+	padding: 0;
+	border: 2px solid var(--borda);
+	border-radius: 50%;
+	background: var(--chapa);
+	color: var(--tinta);
+	box-shadow: 3px 3px 0 var(--sombra);
+}
+
+.voz__botao svg {
+	width: 18px;
+	height: 18px;
+}
+
+.voz__botao:hover:not(:disabled) {
+	border-color: var(--laranja);
+}
+
+.voz__botao--mic {
+	width: 64px;
+	height: 64px;
+	border-color: var(--noite);
+	background: var(--laranja);
+	color: var(--noite);
+}
+
+.voz__botao--mic svg {
+	width: 22px;
+	height: 22px;
+}
+
+.voz__botao--mic[aria-pressed="false"] {
+	border-color: var(--borda);
+	background: var(--poco);
+	color: var(--mudo);
+}
+
+.voz__botao--fim:hover:not(:disabled) {
+	border-color: var(--laranja-escuro);
+	background: var(--laranja-escuro);
+	color: #fff;
+}
+
+.voz__teclas {
+	display: flex;
+	gap: 14px;
+	margin-top: 14px;
+	color: var(--mudo-texto);
+	font: 11px/18px var(--mono);
+}
+
+.voz__teclas span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+@media (pointer: coarse) {
+	.voz__teclas {
+		display: none;
+	}
+}
+
+/* ── Between: narrower columns ───────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+	:root {
+		--chat-w: 380px;
+		--lateral-w: 240px;
+	}
+
+	.tarefas {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.tarefas__cartoes {
+		max-height: none;
+	}
+}
+
+/* ── Phones (≤ 720 px): one screen and the tabs at the bottom ────────────────────────────── */
+.app--celular {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.app__tela {
+	position: relative;
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.app--celular .chat {
+	flex: 1;
+	border-left: 0;
+}
+
+.app--celular .times {
+	padding-top: calc(14px + var(--sa-t));
+}
+
+.app--celular .tarefas {
+	grid-template-columns: minmax(0, 1fr);
+	padding-top: calc(16px + var(--sa-t));
+}
+
+.app--celular .tarefas__cartoes {
+	max-height: none;
+}
+
+.app--celular .banner {
+	top: calc(12px + var(--sa-t));
+	font-size: 12px;
+}
+
+.abas--baixo {
+	justify-content: space-around;
+	padding: 0 0 var(--sa-b);
+	box-shadow: inset 0 2px 0 var(--borda);
+}
+
+.abas--baixo .aba {
+	flex: 1;
+	justify-content: center;
+	min-height: 48px;
+	padding: 14px 5px 12px;
+	border-top: 2px solid transparent;
+	border-bottom: 0;
+}
+
+.abas--baixo .aba[aria-selected="true"] {
+	border-top-color: var(--laranja);
+}
+
+/* Keyboard up: the tabs give the prompt box their room. */
+html.tem-teclado .abas--baixo {
+	display: none;
+}
+
+html.tem-teclado .chat__pe {
+	padding-bottom: 8px;
+}
+
+.app--celular .voz {
+	position: fixed;
+	z-index: 40;
+}
+
+.app--celular .voz__nome {
+	font-size: 24px;
+	line-height: 30px;
+}
+
+.app--celular .rosto--g :is(canvas, img) {
+	width: 96px;
+	height: 120px;
+}
+
+.app--celular .dialogo {
+	max-height: calc(var(--altura, 100dvh) - 32px);
+}

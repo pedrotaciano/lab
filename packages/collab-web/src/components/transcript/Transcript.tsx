@@ -1,7 +1,7 @@
 import type { AssistantMessage, ImageContent, SessionEntry, TextContent, ToolResultMessage } from "@oh-my-pi/pi-wire";
 import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ActiveTool, ConnectionPhase } from "../../lib/client";
 import { fmtTokens } from "../../lib/format";
 import type { ToolRenderHost } from "../../tool-render";
@@ -184,20 +184,41 @@ function entryRowEqual(prev: EntryRowProps, next: EntryRowProps): boolean {
 	return true;
 }
 
+/** Gutter labels and status lines; an embedding host (another product, another language) provides its own. */
+export interface TranscriptLabels {
+	user: ReactNode;
+	agent: ReactNode;
+	/** Gutter of a `collab-prompt` message, by its `details.from`. */
+	from(name: string): ReactNode;
+	thinking: ReactNode;
+	empty: ReactNode;
+	earlier(count: number): ReactNode;
+}
+
+export const TranscriptLabelsContext = createContext<TranscriptLabels>({
+	user: "host",
+	agent: "agent",
+	from: name => <span className="tr-badge">{name}</span>,
+	thinking: "thinking…",
+	empty: "no activity yet",
+	earlier: count => `show ${count.toLocaleString("en-US")} earlier`,
+});
+
 const EntryRow = memo(function EntryRow({ entry, results, active, host }: EntryRowProps): ReactNode {
+	const labels = useContext(TranscriptLabelsContext);
 	switch (entry.type) {
 		case "message": {
 			const msg = entry.message;
 			switch (msg.role) {
 				case "user":
 					return (
-						<Row kind="user" gutter="host" title={entry.timestamp}>
+						<Row kind="user" gutter={labels.user} title={entry.timestamp}>
 							<MsgContent content={msg.content} />
 						</Row>
 					);
 				case "assistant":
 					return (
-						<Row kind="assistant" gutter="agent" title={entry.timestamp}>
+						<Row kind="assistant" gutter={labels.agent} title={entry.timestamp}>
 							<AssistantBody message={msg} results={results} active={active} pending={false} host={host} />
 						</Row>
 					);
@@ -216,7 +237,7 @@ const EntryRow = memo(function EntryRow({ entry, results, active, host }: EntryR
 						? ((details as Record<string, unknown>).from as string)
 						: "guest";
 				return (
-					<Row kind="user" gutter={<span className="tr-badge">{from}</span>} title={entry.timestamp}>
+					<Row kind="user" gutter={labels.from(from)} title={entry.timestamp}>
 						<MsgContent content={entry.content} />
 					</Row>
 				);
@@ -272,6 +293,7 @@ const EARLIER_TRIGGER_PX = 200;
 
 export function Transcript(props: TranscriptProps): ReactNode {
 	const { entries, stream, streamDone, activeTools, working, compact, host, phase } = props;
+	const labels = useContext(TranscriptLabelsContext);
 
 	// null follows the tail. A number pins the first mounted entry while the
 	// reader is scrolled away from the bottom, so appended entries never
@@ -385,18 +407,18 @@ export function Transcript(props: TranscriptProps): ReactNode {
 			}}
 		>
 			{settled && entries.length === 0 && stream === null && !working && (
-				<div className="tr-empty">no activity yet</div>
+				<div className="tr-empty">{labels.empty}</div>
 			)}
 			{start > 0 && (
 				<button type="button" className="tr-earlier" onClick={showEarlier}>
-					show {start.toLocaleString("en-US")} earlier
+					{labels.earlier(start)}
 				</button>
 			)}
 			{visible.map(entry => (
 				<EntryRow key={entry.id} entry={entry} results={results} active={activeTools} host={host} />
 			))}
 			{stream !== null && (
-				<Row kind="assistant" gutter="agent">
+				<Row kind="assistant" gutter={labels.agent}>
 					<AssistantBody
 						message={stream}
 						results={results}
@@ -407,7 +429,7 @@ export function Transcript(props: TranscriptProps): ReactNode {
 				</Row>
 			)}
 			{tailTools.length > 0 && (
-				<Row kind="assistant" gutter={stream === null ? "agent" : ""}>
+				<Row kind="assistant" gutter={stream === null ? labels.agent : ""}>
 					{tailTools.map(tool => (
 						<ToolCard
 							key={tool.toolCallId}
@@ -423,8 +445,8 @@ export function Transcript(props: TranscriptProps): ReactNode {
 				</Row>
 			)}
 			{working && stream === null && activeTools.size === 0 && (
-				<Row kind="assistant" gutter="agent">
-					<div className="tr-shimmer">thinking…</div>
+				<Row kind="assistant" gutter={labels.agent}>
+					<div className="tr-shimmer">{labels.thinking}</div>
 				</Row>
 			)}
 		</div>
