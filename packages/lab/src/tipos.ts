@@ -39,9 +39,55 @@ export interface ResumoChat {
 	ultimaResposta: string | null;
 	modelo: string | null;
 	erro: string | null;
+	/** Model, effort and context of the running omp (its session keeps them); null without one. */
+	controles: ControlesChat | null;
 	/** Epoch ms. */
 	atualizadoEm: number;
 }
+
+export interface ModeloChat {
+	provider: string;
+	id: string;
+	nome: string;
+}
+
+export interface ControlesChat {
+	modelo: ModeloChat | null;
+	/** omp's configured thinking selector: `auto` (padrão), `off`, `low` … `max`. */
+	esforco: string | null;
+	/** Selectors the active model accepts (`off`, `auto`, then its efforts). */
+	esforcos: string[];
+	/** The conversation's share of the model's window, as omp counted it at the end of the last turn. */
+	contexto: { tokens: number; janela: number; pct: number } | null;
+	compactando: boolean;
+}
+
+/** A row of the model picker (`GET /api/chats/:id/modelos`), in omp's picker order. */
+export interface ModeloOpcao extends ModeloChat {
+	/** Context window in tokens, when known. */
+	contexto: number | null;
+	/** The model's effort slider, low to high; empty without one. */
+	esforcos: string[];
+	atual: boolean;
+}
+
+/** `GET /api/chats/:id/uso`: the whole session so far. */
+export interface UsoChat {
+	custo: number;
+	tokens: number;
+}
+
+/** A file sent from the page (`POST /api/chats/:id/anexos`), until the next message takes it. */
+export interface AnexoEnviado {
+	id: string;
+	nome: string;
+	tamanho: number;
+	/** It goes to the model as an image (RPC `images`), besides its path. */
+	imagem: boolean;
+}
+
+/** `GET /api/transcricao`: whether this machine can transcribe the microphone, and if not why. */
+export type EstadoTranscricao = { disponivel: true; modelo: string } | { disponivel: false; motivo: string };
 
 export interface Time {
 	id: string;
@@ -50,6 +96,67 @@ export interface Time {
 	criadoEm: number;
 	/** The folder is gone from disk (checked every few seconds); omitted while it exists. */
 	ausente?: boolean;
+	/** The folder is an Egregore instance; always set in `Estado` (null when it is not). */
+	egregore?: EgregoreTime | null;
+}
+
+/** An Egregore instance (`egregore.json`, or listed in `~/.egregore/instances.json`). */
+export interface EgregoreTime {
+	/** The organization's name (`org_name`). */
+	org: string;
+	/** Absolute path of the instance's `memory/` (a symlink to the memory repo, as Egregore links it). */
+	memoria: string;
+}
+
+export type SecaoMemoriaId =
+	| "handoffs"
+	| "decisoes"
+	| "descobertas"
+	| "padroes"
+	| "perguntas"
+	| "quests"
+	| "wraps"
+	| "pessoas"
+	| "identidade";
+
+export interface ItemMemoria {
+	/** Path inside `memory/` (`handoffs/2026-11/24-pedro-x.md`); what `/memoria/arquivo` takes. */
+	caminho: string;
+	titulo: string;
+	/** Who committed the file first; null while it is not committed. */
+	autor: { nome: string; login?: string } | null;
+	/** Epoch ms of that first commit (else the frontmatter date, else the file's mtime). */
+	data: number;
+	primeiraLinha: string;
+	/** The first commit is this machine's git identity (`user.email` of the memory repo). */
+	meu: boolean;
+}
+
+export interface SecaoMemoria {
+	id: SecaoMemoriaId;
+	nome: string;
+	/** Newest first; with `q`, only the matches. */
+	itens: ItemMemoria[];
+}
+
+/** `GET /api/times/:id/memoria?q=`. */
+export interface MemoriaTime {
+	/** `memory/` is on this machine. */
+	presente: boolean;
+	/** Without `memory/`: the Egregore command that brings it. */
+	comando: string | null;
+	secoes: SecaoMemoria[];
+}
+
+/** `GET /api/times/:id/memoria/sincronia`: the memory repo against its `origin`. */
+export interface SincroniaMemoria {
+	/** The team's commits not here yet. */
+	atras: number;
+	/** Local commits not pushed yet. */
+	frente: number;
+	sincronizando: boolean;
+	/** Why the last fetch or sync failed. */
+	erro?: string;
 }
 
 export interface Autor {
@@ -100,7 +207,9 @@ export interface LiveTranscricao {
 export type MensagemServidor =
 	| { t: "estado"; estado: Estado }
 	| { t: "chat"; chatId: string; frame: LabHostFrame }
-	| { t: "voz"; chatId: string; fase?: LivePhase; transcricao?: LiveTranscricao; fim?: { erro: string | null } };
+	| { t: "voz"; chatId: string; fase?: LivePhase; transcricao?: LiveTranscricao; fim?: { erro: string | null } }
+	/** An Egregore team's memory (files or sync state) changed: refetch it. */
+	| { t: "memoria"; timeId: string };
 
 /** Browser → server WebSocket messages. */
 export type MensagemCliente = { t: "assinar"; chatId: string } | { t: "desassinar"; chatId: string };

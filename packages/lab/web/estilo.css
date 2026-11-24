@@ -17,6 +17,8 @@
 	--fio-forte: rgb(41 37 30 / 0.34);
 	--sombra: rgb(41 37 30 / 0.18);
 	--borda: var(--noite);
+	/* An icon inside an orange button sits on it: white by day, noite at night (DESIGN.md). */
+	--fundo-icone-laranja: #fdfdfc;
 	--sans: "Orbi Sans", system-ui, sans-serif;
 	--serif: "Orbi Sheriff", Georgia, serif;
 	--mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -62,6 +64,7 @@ html.is-noite {
 	--fio-forte: rgb(241 242 238 / 0.3);
 	--sombra: rgb(0 0 0 / 0.45);
 	--borda: rgb(241 242 238 / 0.26);
+	--fundo-icone-laranja: var(--noite);
 	--mudo-texto: rgb(241 242 238 / 0.72);
 	--bloqueio: #ff4136;
 	--bloqueio-texto: #ff6b62;
@@ -1160,29 +1163,6 @@ html.is-noite .moldura {
 	justify-content: flex-start;
 }
 
-.chat__atividade {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	min-width: 0;
-	padding: 0 2px;
-	color: var(--mudo-texto);
-	font: 11px/15px var(--mono);
-}
-
-.chat__atividade-texto {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.chat__todo {
-	flex-shrink: 0;
-	color: var(--tinta);
-}
-
 .chat__erro {
 	color: var(--bloqueio-texto);
 	font: 11px/15px var(--mono);
@@ -1342,14 +1322,33 @@ html.is-noite .moldura {
 	}
 }
 
-/* ── The prompt box (the POC's .chat__entrada) ───────────────────────────────────────────── */
+/* ── The prompt box (the POC's .chat__entrada, DESIGN.md 20/11/2026 "caixa de prompt") ─────────
+   One box, after the Are.na prompt box: the text on top; the files and the recording bar under it;
+   the tool row (clip and quadro quiet on the left; Parar, mic and Enviar on the right); across the
+   foot, a poço under a thread, the model line. Focus turns the border orange. */
+.visualmente-oculto {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.caixa {
+	position: relative;
+}
+
+/* The field measures itself (container): the model line wraps by the box's width, not the window's. */
 .entrada {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
 	border: 2px solid var(--borda);
 	background: var(--chapa);
 	box-shadow: 3px 3px 0 var(--sombra);
+	container-type: inline-size;
 }
 
 .entrada:focus-within {
@@ -1376,6 +1375,214 @@ html.is-noite .moldura {
 	color: var(--mudo);
 }
 
+.entrada__campo[readonly] {
+	color: var(--mudo);
+	cursor: default;
+}
+
+/* The audios still transcribing: not a chip of the request (they already went), the dashed pill of
+   what waits (.fila). */
+.entrada__audios {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 8px 12px 0;
+}
+
+.entrada__audio {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 8px;
+	border: 1px dashed var(--borda);
+	border-radius: 999px;
+	color: var(--mudo);
+	font: 11px/1.5 var(--mono);
+}
+
+.entrada__audio svg {
+	flex-shrink: 0;
+	width: 10px;
+	height: 10px;
+	color: var(--laranja);
+}
+
+.entrada__audio-tirar {
+	min-width: 24px;
+	min-height: 24px;
+	margin: -5px -6px -5px 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: 14px/1 var(--sans);
+}
+
+.entrada__audio-tirar:hover {
+	color: var(--tinta);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.entrada__audio svg,
+	.chat__gravando-ponto {
+		animation: piscar 1s steps(2) infinite;
+	}
+}
+
+/* The files picked: a chip each, in a row that scrolls sideways. The error stays on its chip. */
+.entrada__anexos {
+	display: flex;
+	gap: 6px;
+	margin: 0;
+	padding: 2px 12px 6px;
+	overflow-x: auto;
+	list-style: none;
+}
+
+.entrada__anexo {
+	display: grid;
+	flex: 0 0 auto;
+	grid-template-columns: 32px minmax(0, 1fr) 22px;
+	grid-template-rows: auto auto;
+	align-items: center;
+	column-gap: 8px;
+	width: 180px;
+	padding: 4px;
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	font-size: 12px;
+	line-height: 15px;
+}
+
+.entrada__anexo.is-erro {
+	border-color: var(--laranja);
+}
+
+.entrada__anexo-ver {
+	display: grid;
+	grid-row: 1 / 3;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	overflow: hidden;
+	background: var(--poco);
+	color: var(--mudo);
+}
+
+.entrada__anexo-ver svg {
+	width: 14px;
+	height: 14px;
+}
+
+.entrada__anexo-ver img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.entrada__anexo-nome {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.entrada__anexo-info {
+	grid-column: 2;
+	overflow: hidden;
+	color: var(--mudo);
+	font: 500 10px/14px var(--mono);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.entrada__anexo.is-erro .entrada__anexo-info {
+	color: var(--tinta);
+}
+
+.entrada__anexo-tirar {
+	grid-column: 3;
+	grid-row: 1 / 3;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--mudo);
+	font-size: 16px;
+}
+
+.entrada__anexo-tirar:hover {
+	color: var(--laranja);
+}
+
+/* Recording, inside the box: the poço, no frame of its own (the box's focus is orange already). */
+.chat__gravando {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	margin: 0 6px 6px;
+	padding: 4px 4px 4px 10px;
+	background: var(--poco);
+	font: 12px/16px var(--mono);
+}
+
+.chat__gravando .botao {
+	min-height: 30px;
+	padding: 0 10px;
+	box-shadow: none;
+}
+
+.chat__gravando-ponto {
+	flex-shrink: 0;
+	width: 8px;
+	height: 8px;
+	background: var(--laranja);
+}
+
+.chat__gravando-texto {
+	flex: 1;
+	min-width: 0;
+	white-space: nowrap;
+}
+
+.chat__nivel {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	height: 14px;
+}
+
+.chat__nivel span {
+	width: 3px;
+	height: 100%;
+	background: var(--fio-forte);
+}
+
+.chat__nivel span.is-aceso {
+	background: var(--laranja);
+}
+
+.chat__gravando:not([data-estado="gravando"]) .chat__nivel {
+	display: none;
+}
+
+/* Held (push to talk), the bar says it can be slid away and follows the finger left. */
+.chat__deslizar {
+	display: none;
+	color: var(--mudo);
+	white-space: nowrap;
+	translate: calc(-1 * var(--deslize, 0px)) 0;
+}
+
+.chat__gravando.is-segurando .chat__deslizar {
+	display: inline;
+}
+
+.chat__gravando.is-segurando .botao {
+	display: none;
+}
+
 .entrada__acoes {
 	display: flex;
 	align-items: center;
@@ -1384,11 +1591,61 @@ html.is-noite .moldura {
 	padding: 0 6px 6px;
 }
 
+.entrada__ferramentas,
 .entrada__envio {
 	display: flex;
+	min-width: 0;
 	align-items: center;
+	gap: 2px;
+}
+
+.entrada__envio {
+	flex-shrink: 0;
 	gap: 4px;
 	margin-left: auto;
+}
+
+/* Tools inside the box are quiet: no frame until the pointer is on them. Locked, they say so. */
+.ferramenta {
+	display: inline-grid;
+	place-items: center;
+	min-width: 30px;
+	min-height: 30px;
+	padding: 0;
+	border: 2px solid transparent;
+	background: transparent;
+	color: var(--mudo);
+}
+
+.ferramenta:hover:not(:disabled) {
+	border-color: var(--laranja);
+	color: var(--tinta);
+}
+
+.ferramenta svg {
+	width: 14px;
+	height: 14px;
+}
+
+.ferramenta:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.ferramenta.is-gravando {
+	border-color: var(--noite);
+	background: var(--laranja);
+	color: var(--noite);
+	opacity: 1;
+}
+
+/* The orange button's rule: its icon on the --fundo-icone-laranja tile, drawn in orange. */
+.ferramenta.is-gravando svg,
+.entrada__enviar:not(:disabled) svg {
+	box-sizing: content-box;
+	padding: 3px;
+	background: var(--fundo-icone-laranja);
+	color: var(--laranja);
 }
 
 .entrada__parar {
@@ -1402,8 +1659,13 @@ html.is-noite .moldura {
 .entrada__enviar {
 	min-width: 32px;
 	min-height: 32px;
+	margin-left: 2px;
 	padding: 0;
 	box-shadow: 2px 2px 0 var(--noite);
+}
+
+html.is-noite .entrada__enviar:not(:disabled) {
+	box-shadow: 2px 2px 0 rgb(0 0 0 / 0.45);
 }
 
 .entrada__enviar svg {
@@ -1411,12 +1673,731 @@ html.is-noite .moldura {
 	height: 14px;
 }
 
+.entrada__enviar:not(:disabled) svg {
+	width: 10px;
+	height: 10px;
+}
+
+/* A finger's target: 44 px. */
 @media (pointer: coarse) {
+	.ferramenta,
 	.entrada__parar,
 	.entrada__enviar {
 		min-width: 44px;
 		min-height: 44px;
 	}
+}
+
+/* Files dragged over the chat: the whole chat says it takes them. */
+.chat.is-soltando::after {
+	position: absolute;
+	z-index: 50;
+	border: 2px dashed var(--laranja);
+	background: color-mix(in srgb, var(--chapa) 70%, transparent);
+	content: "";
+	inset: 8px;
+	pointer-events: none;
+}
+
+/* ── The model line, in the poço across the box's foot (LinhaModelo) ───────────────────────── */
+.linha-modelo {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+	min-height: 30px;
+	padding: 0 4px;
+	border-top: 1px solid var(--fio);
+	background: var(--poco);
+	color: var(--mudo);
+	font: 500 11px/1 var(--mono);
+	--quente: color-mix(in srgb, var(--mudo) 45%, transparent);
+}
+
+.linha-modelo[data-esforco="minimal"],
+.linha-modelo[data-esforco="low"] {
+	--quente: color-mix(in srgb, var(--laranja) 45%, var(--mudo));
+}
+
+.linha-modelo[data-esforco="medium"] {
+	--quente: color-mix(in srgb, var(--laranja) 75%, var(--mudo));
+}
+
+.linha-modelo[data-esforco="high"],
+.linha-modelo[data-esforco="xhigh"] {
+	--quente: var(--laranja);
+}
+
+.linha-modelo[data-esforco="max"] {
+	--quente: #ffc400;
+}
+
+.linha-modelo > button {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 6px;
+	min-height: 26px;
+	padding: 4px 8px;
+	border: 0;
+	background: none;
+	color: var(--tinta);
+	font: inherit;
+	white-space: nowrap;
+}
+
+.linha-modelo > button:hover:not(:disabled) {
+	background: color-mix(in srgb, var(--laranja) 10%, transparent);
+}
+
+.linha-modelo > button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.linha-modelo__sep {
+	flex-shrink: 0;
+	color: color-mix(in srgb, var(--mudo) 60%, transparent);
+}
+
+/* The effort: four pixels, short to tall; the level lights that many, warmer as it climbs. */
+.esforco__pixels {
+	display: inline-flex;
+	align-items: flex-end;
+	gap: 1px;
+	height: 10px;
+}
+
+.esforco__pixels i {
+	width: 3px;
+	background: color-mix(in srgb, var(--mudo) 30%, transparent);
+}
+
+.esforco__pixels i:nth-child(1) {
+	height: 4px;
+}
+
+.esforco__pixels i:nth-child(2) {
+	height: 6px;
+}
+
+.esforco__pixels i:nth-child(3) {
+	height: 8px;
+}
+
+.esforco__pixels i:nth-child(4) {
+	height: 10px;
+}
+
+.esforco__pixels i.is-acesa {
+	background: var(--quente);
+}
+
+.esforco__nome {
+	color: var(--mudo);
+}
+
+.linha-modelo:not([data-esforco="padrao"]) .esforco__nome {
+	color: var(--tinta);
+}
+
+/* The model: the friendly name, "…" only when it doesn't fit. */
+.linha-modelo > .modelo__botao {
+	flex: 0 1 auto;
+	min-width: 6em;
+}
+
+.modelo__nome {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.modelo__seta {
+	flex-shrink: 0;
+	color: var(--mudo);
+}
+
+/* The context: five pixels filling left to right; past 80% they and the number go orange. */
+.contexto__pixels {
+	display: inline-flex;
+	align-items: center;
+	gap: 1px;
+	height: 10px;
+}
+
+.contexto__pixels i {
+	width: 3px;
+	height: 6px;
+	background: color-mix(in srgb, var(--mudo) 30%, transparent);
+}
+
+.contexto__pixels i.is-acesa {
+	background: var(--mudo);
+}
+
+.contexto__pct {
+	color: var(--mudo);
+}
+
+.contexto__botao.is-cheio .contexto__pixels i.is-acesa,
+.contexto__botao.is-compactando .contexto__pixels i {
+	background: var(--laranja);
+}
+
+.contexto__botao.is-cheio .contexto__pct {
+	color: var(--laranja-escuro);
+}
+
+html.is-noite .contexto__botao.is-cheio .contexto__pct {
+	color: var(--laranja);
+}
+
+/* What the chat does now, on the right; a narrow box gives it a line of its own in the same poço. */
+.linha-modelo__andamento {
+	display: inline-flex;
+	min-width: 0;
+	align-items: center;
+	gap: 6px;
+	margin-left: auto;
+	padding: 0 6px;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.linha-modelo__uso {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.linha-modelo__barra {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 1px;
+	width: 32px;
+	height: 4px;
+}
+
+.linha-modelo__barra i {
+	display: block;
+	flex: 1 1 0;
+	height: 100%;
+	background: color-mix(in srgb, var(--mudo) 25%, transparent);
+}
+
+.linha-modelo__barra i.is-acesa {
+	background: var(--laranja);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.linha-modelo__barra i.is-correndo {
+		animation: andamento-correr 1.5s ease-in-out infinite;
+	}
+
+	.linha-modelo__barra i.is-correndo:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+
+	.linha-modelo__barra i.is-correndo:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+
+	.linha-modelo__barra i.is-correndo:nth-child(4) {
+		animation-delay: 0.45s;
+	}
+
+	.linha-modelo__barra i.is-correndo:nth-child(5) {
+		animation-delay: 0.6s;
+	}
+}
+
+@keyframes andamento-correr {
+	0%,
+	100% {
+		background: color-mix(in srgb, var(--mudo) 25%, transparent);
+	}
+
+	50% {
+		background: var(--laranja);
+	}
+}
+
+@container (max-width: 440px) {
+	.linha-modelo {
+		flex-wrap: wrap;
+	}
+
+	.linha-modelo__andamento {
+		flex-basis: 100%;
+		order: 1;
+		min-height: 22px;
+		margin-left: 0;
+		padding: 0 8px 4px;
+	}
+}
+
+/* Máximo: pixel fire licking up from the line into the field, an orange and yellow glow that
+   breathes, and the word in a moving fire gradient. Still with reduced motion. */
+.linha-modelo__fogo {
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	width: 100%;
+	height: 10px;
+	image-rendering: pixelated;
+	pointer-events: none;
+}
+
+.entrada:has(.linha-modelo.is-maximo) {
+	border-color: var(--laranja);
+	box-shadow: 0 0 10px 1px color-mix(in srgb, #ffa300 45%, transparent);
+}
+
+.linha-modelo.is-maximo .esforco__nome {
+	background: linear-gradient(
+		90deg,
+		var(--laranja-escuro),
+		var(--laranja),
+		#ffc400,
+		#ffe14d,
+		#ffc400,
+		var(--laranja),
+		var(--laranja-escuro)
+	);
+	background-size: 200% 100%;
+	background-clip: text;
+	color: transparent;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.entrada:has(.linha-modelo.is-maximo) {
+		animation: maximo-brilho 1.4s ease-in-out infinite alternate;
+	}
+
+	.linha-modelo.is-maximo .esforco__nome {
+		animation: maximo-fogo 1.2s linear infinite;
+	}
+
+	.linha-modelo.is-maximo .esforco__pixels i.is-acesa {
+		animation: maximo-pixel 0.48s steps(2, end) infinite;
+	}
+
+	.linha-modelo.is-maximo .esforco__pixels i.is-acesa:nth-child(2n) {
+		animation-delay: -0.24s;
+	}
+}
+
+@keyframes maximo-brilho {
+	from {
+		box-shadow: 0 0 6px 0 color-mix(in srgb, var(--laranja) 40%, transparent);
+	}
+
+	to {
+		box-shadow: 0 0 16px 3px color-mix(in srgb, #ffc400 55%, transparent);
+	}
+}
+
+@keyframes maximo-fogo {
+	from {
+		background-position: 0% 0;
+	}
+
+	to {
+		background-position: -200% 0;
+	}
+}
+
+@keyframes maximo-pixel {
+	0% {
+		background: #ffc400;
+	}
+
+	50% {
+		background: var(--laranja);
+	}
+}
+
+/* The panels above the box (the model picker, the context): omp's Alt+P list in the house's colours. */
+.seletor-modelo {
+	position: absolute;
+	right: 0;
+	bottom: calc(100% + 6px);
+	left: 0;
+	z-index: 30;
+	display: flex;
+	flex-direction: column;
+	max-height: min(440px, 62vh);
+	padding: 10px 0 0;
+}
+
+.seletor-modelo__titulo {
+	padding: 0 12px;
+	color: var(--laranja-escuro);
+	font: 600 10px/14px var(--mono);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+html.is-noite .seletor-modelo__titulo {
+	color: var(--laranja);
+}
+
+.seletor-modelo__sub {
+	padding: 2px 12px 8px;
+	color: var(--mudo);
+	font-size: 12px;
+}
+
+.seletor-modelo__busca {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 12px 6px;
+	padding: 0 8px;
+	border: 2px solid var(--borda);
+	background: var(--poco);
+	color: var(--laranja-escuro);
+	font: 600 13px/1 var(--mono);
+}
+
+.seletor-modelo__busca input {
+	flex: 1;
+	min-width: 0;
+	height: 32px;
+	border: 0;
+	outline: 0;
+	background: none;
+	color: var(--tinta);
+	font: 500 13px/1 var(--mono);
+}
+
+.seletor-modelo__busca:focus-within {
+	border-color: var(--laranja);
+}
+
+.seletor-modelo__busca input:focus-visible,
+.contexto-painel__manter textarea:focus-visible {
+	outline: none;
+}
+
+.contexto-painel__manter textarea:focus {
+	border-color: var(--laranja);
+}
+
+.seletor-modelo__lista {
+	flex: 1 1 auto;
+	min-height: 0;
+	margin: 0;
+	padding: 0 0 4px;
+	overflow: auto;
+	list-style: none;
+}
+
+.seletor-modelo__item {
+	display: grid;
+	grid-template-columns: 14px minmax(0, 1fr) auto 48px;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px 6px 6px;
+	font: 500 13px/18px var(--sans);
+	cursor: pointer;
+}
+
+.seletor-modelo__item::before {
+	color: var(--laranja-escuro);
+	content: "";
+	font: 700 13px/1 var(--mono);
+}
+
+.seletor-modelo__item[aria-selected="true"] {
+	background: color-mix(in srgb, var(--laranja) 13%, transparent);
+}
+
+.seletor-modelo__item[aria-selected="true"]::before {
+	content: "›";
+}
+
+.seletor-modelo__nome {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.seletor-modelo__atual {
+	color: var(--laranja-escuro);
+}
+
+html.is-noite .seletor-modelo__item::before,
+html.is-noite .seletor-modelo__atual {
+	color: var(--laranja);
+}
+
+.seletor-modelo__id,
+.seletor-modelo__ctx {
+	color: var(--mudo);
+	font: 500 11px/1 var(--mono);
+	white-space: nowrap;
+}
+
+.seletor-modelo__ctx {
+	text-align: right;
+}
+
+.seletor-modelo__vazio {
+	padding: 10px 12px;
+	color: var(--mudo);
+	font-size: 13px;
+}
+
+.seletor-modelo__detalhe {
+	padding: 6px 12px 8px;
+	border-top: 1px dashed color-mix(in srgb, var(--borda) 35%, transparent);
+	color: var(--tinta);
+	font: 500 10px/14px var(--mono);
+}
+
+.seletor-modelo__detalhe:empty {
+	display: none;
+}
+
+.contexto-painel {
+	gap: 8px;
+	padding-bottom: 12px;
+}
+
+.contexto-painel__linhas {
+	margin: 0;
+	padding: 0 12px;
+	color: var(--tinta);
+	font: 500 12px/18px var(--mono);
+	list-style: none;
+}
+
+.contexto-painel__manter {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0 12px;
+	color: var(--mudo);
+	font-size: 12px;
+}
+
+.contexto-painel__manter textarea {
+	min-height: 40px;
+	padding: 6px 8px;
+	border: 2px solid var(--borda);
+	background: var(--poco);
+	color: var(--tinta);
+	font: 500 13px/18px var(--mono);
+	resize: vertical;
+}
+
+.contexto-painel__acoes {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 0 12px;
+}
+
+.contexto-painel__compactar {
+	min-height: 30px;
+	padding: 4px 12px;
+	border: 2px solid var(--borda);
+	background: var(--tinta);
+	color: var(--poco);
+	font: 600 12px/1 var(--mono);
+}
+
+.contexto-painel__compactar:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.contexto-painel__motivo {
+	color: var(--mudo);
+	font-size: 12px;
+}
+
+@media (max-width: 760px) {
+	.linha-modelo__sep {
+		display: none;
+	}
+
+	.seletor-modelo__item {
+		grid-template-columns: 14px minmax(0, 1fr) 44px;
+	}
+
+	.seletor-modelo__id {
+		display: none;
+	}
+
+	.linha-modelo > button {
+		gap: 5px;
+		padding: 4px 6px;
+	}
+
+	.linha-modelo.is-maximo .esforco__nome {
+		letter-spacing: 0.02em;
+	}
+}
+
+/* ── Quadro: the box's whiteboard (web/chat/quadro.ts) ─────────────────────────────────────── */
+.quadro {
+	width: min(1200px, calc(100% - 24px));
+	height: calc(100dvh - 48px);
+	margin: auto;
+	padding: 0;
+	overflow: hidden;
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	color: var(--tinta);
+	box-shadow: 6px 6px 0 var(--sombra);
+}
+
+.quadro[open] {
+	display: flex;
+	flex-direction: column;
+}
+
+.quadro::backdrop {
+	background: rgb(41 37 30 / 0.32);
+}
+
+html.is-noite .quadro::backdrop {
+	background: rgb(0 0 0 / 0.5);
+}
+
+.quadro__topo {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 16px;
+}
+
+.quadro__barra {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 16px;
+	padding: 0 16px 10px;
+	border-bottom: 2px solid var(--borda);
+}
+
+.quadro__grupo {
+	display: flex;
+	gap: 2px;
+}
+
+.quadro__ferramenta,
+.quadro__cor,
+.quadro__largura {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: 2px solid transparent;
+	background: none;
+	color: var(--tinta);
+}
+
+.quadro__ferramenta:hover,
+.quadro__cor:hover,
+.quadro__largura:hover {
+	border-color: var(--fio-forte);
+}
+
+.quadro__ferramenta[aria-pressed="true"],
+.quadro__cor[aria-pressed="true"],
+.quadro__largura[aria-pressed="true"] {
+	border-color: var(--borda);
+	background: var(--poco);
+}
+
+.quadro__ferramenta[aria-pressed="true"] {
+	border-color: var(--laranja);
+}
+
+.quadro__ferramenta svg {
+	width: 14px;
+	height: 14px;
+}
+
+.quadro__cor::before {
+	width: 16px;
+	height: 16px;
+	border: 1px solid var(--fio-forte);
+	background: var(--cor);
+	content: "";
+}
+
+.quadro__largura span {
+	width: 16px;
+	background: currentColor;
+}
+
+.quadro__acoes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-left: auto;
+}
+
+/* The board stays paper at night too: what's drawn on it is what goes in the PNG. The dot grid is
+   on screen only (the canvas over it is transparent). */
+.quadro__area {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+	background:
+		radial-gradient(circle, rgb(41 37 30 / 0.16) 0.9px, transparent 1.3px) 0 0 / 20px 20px,
+		#fdfdfc;
+}
+
+.quadro__tela {
+	display: block;
+	outline: none;
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.quadro__tela[data-ferramenta="mover"] {
+	cursor: default;
+}
+
+.quadro__tela[data-ferramenta="texto"] {
+	cursor: text;
+}
+
+.quadro__escrita {
+	position: absolute;
+	min-width: 40px;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	border: 1px dashed #ff5100;
+	outline: none;
+	background: transparent;
+	resize: none;
+	white-space: pre;
+}
+
+.quadro__erro {
+	padding: 8px 16px;
+	border-top: 2px dashed var(--borda);
+	font: 13px/18px var(--sans);
+}
+
+.quadro__erro:empty {
+	display: none;
 }
 
 /* ── The ask card (the POC's .msg--pergunta) ─────────────────────────────────────────────── */
@@ -1972,6 +2953,392 @@ html.is-noite .moldura {
 	.voz__teclas {
 		display: none;
 	}
+}
+
+/* ── Memória (an Egregore team's memory) ─────────────────────────────────────────────────── */
+.memoria {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.memoria--lendo:not(.memoria--celular) {
+	grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+}
+
+.memoria__lista {
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+}
+
+.memoria--lendo:not(.memoria--celular) .memoria__lista {
+	border-right: 2px solid var(--borda);
+}
+
+.memoria__topo {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 16px 14px 12px;
+	border-bottom: 2px solid var(--fio);
+	background: var(--pagina);
+}
+
+.memoria__times {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.memoria__time {
+	padding: 2px 8px;
+	border: 1.5px solid var(--fio-forte);
+	background: none;
+	color: var(--mudo-texto);
+	font: 500 11px/15px var(--mono);
+}
+
+.memoria__time[aria-selected="true"] {
+	border-color: var(--laranja);
+	color: var(--tinta);
+}
+
+.memoria__nome {
+	margin: 0;
+	font: 400 22px/28px var(--serif);
+}
+
+.memoria__sincronia {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 6px;
+	min-height: 16px;
+	margin: 0;
+	color: var(--mudo-texto);
+	font: 11px/16px var(--mono);
+}
+
+.memoria__sincronia .link {
+	font-size: 10px;
+	line-height: 16px;
+}
+
+.memoria__sincronia--novidade {
+	color: var(--tinta);
+}
+
+.memoria__sincronia--novidade .link {
+	color: var(--laranja-escuro);
+}
+
+.memoria__sincronia--erro {
+	color: var(--bloqueio-texto);
+}
+
+.memoria__motivo {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.memoria__pendente {
+	color: var(--mudo-texto);
+}
+
+.memoria__busca {
+	width: 100%;
+	min-height: 34px;
+	margin-top: 4px;
+	padding: 6px 9px;
+	border: 2px solid var(--borda);
+	border-radius: 0;
+	background: var(--poco);
+	color: var(--tinta);
+	font: 14px/20px var(--sans);
+}
+
+.memoria__busca:focus {
+	border-color: var(--laranja);
+	outline: none;
+}
+
+.memoria__aviso {
+	padding: 16px 14px;
+	color: var(--mudo-texto);
+	font: 12px/16px var(--mono);
+}
+
+.memoria__secoes {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 8px 14px 24px;
+}
+
+.memoria__secao {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 3px 0;
+}
+
+.memoria__cabeca {
+	margin: 0;
+}
+
+.memoria__cabeca button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 4px 0;
+	border: 0;
+	background: none;
+	color: var(--tinta);
+	font: 500 11px/13px var(--mono);
+	letter-spacing: 0.06em;
+	text-align: left;
+	text-transform: uppercase;
+}
+
+.memoria__cabeca button:disabled {
+	color: var(--mudo);
+	cursor: default;
+}
+
+.memoria__seta {
+	width: 10px;
+	color: var(--mudo);
+}
+
+.memoria__n {
+	min-width: 20px;
+	margin-left: auto;
+	padding: 1px 5px;
+	border: 1.5px solid currentColor;
+	font-size: 10px;
+	text-align: center;
+}
+
+.memoria__itens {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* "Ver todos": the section keeps its place and scrolls on its own. */
+.memoria__itens--todas {
+	max-height: min(60vh, 560px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 8px 6px 8px 8px;
+	border: 2px solid var(--fio);
+	background: var(--poco);
+	scrollbar-width: thin;
+}
+
+.memoria__item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	padding: 8px 10px;
+	border: 2px solid var(--borda);
+	background: var(--chapa);
+	box-shadow: 2px 2px 0 var(--sombra);
+	color: var(--tinta);
+	text-align: left;
+}
+
+.memoria__item:hover,
+.memoria__item:focus-visible,
+.memoria__item.is-aberto {
+	border-color: var(--laranja);
+}
+
+.memoria__item.is-novo {
+	background: color-mix(in srgb, var(--laranja) 8%, var(--chapa));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.memoria__item.is-novo {
+		animation: memoria-entra 0.32s var(--ease-out);
+	}
+}
+
+@keyframes memoria-entra {
+	from {
+		opacity: 0;
+		translate: 0 -6px;
+	}
+}
+
+.memoria__titulo {
+	display: -webkit-box;
+	overflow: hidden;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 19px;
+	overflow-wrap: anywhere;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.memoria__quem {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	margin: 0;
+	color: var(--mudo-texto);
+	font: 11px/16px var(--mono);
+}
+
+.memoria__autor {
+	overflow: hidden;
+	color: var(--tinta);
+	font-family: var(--sans);
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.memoria__quem time {
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+.memoria__novo {
+	flex-shrink: 0;
+	margin-left: auto;
+	padding: 0 5px;
+	background: var(--laranja);
+	color: var(--noite);
+	font: 700 10px/14px var(--mono);
+	text-transform: uppercase;
+}
+
+.memoria__linha {
+	overflow: hidden;
+	color: var(--mudo-texto);
+	font-size: 13px;
+	line-height: 18px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.memoria__todos {
+	align-self: flex-start;
+	margin: 2px 0 4px;
+}
+
+.memoria__comeco,
+.memoria__nada p,
+.memoria__ausente p {
+	margin: 0;
+	color: var(--mudo-texto);
+	font: 12px/16px var(--mono);
+}
+
+.memoria__comeco {
+	padding: 10px 0 0;
+}
+
+.memoria__nada,
+.memoria__ausente {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 20px 14px;
+}
+
+.memoria__comando {
+	max-width: 100%;
+	padding: 8px 10px;
+	border: 2px solid var(--borda);
+	background: var(--poco);
+	font: 12px/18px var(--mono);
+	overflow-wrap: anywhere;
+	user-select: all;
+}
+
+.memoria__leitor {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	background: var(--chapa);
+}
+
+.memoria__leitor-topo {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 16px 14px 12px;
+	border-bottom: 2px solid var(--fio);
+}
+
+.memoria__leitor-quem {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.memoria__leitor-titulo {
+	margin: 0;
+	font: 400 20px/26px var(--serif);
+	overflow-wrap: anywhere;
+}
+
+.memoria__texto {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 14px 18px 28px;
+	font-size: 14px;
+	line-height: 21px;
+	scrollbar-width: thin;
+}
+
+.memoria__texto .tr-md {
+	max-width: 68ch;
+}
+
+.memoria__texto :is(code, pre) {
+	font-family: var(--mono);
+}
+
+/* A phone reads full screen, over the tabs, with ← back to the list. */
+.memoria--celular .memoria__topo {
+	padding-top: calc(16px + var(--sa-t));
+}
+
+.memoria--celular .memoria__leitor {
+	position: fixed;
+	inset: 0;
+	z-index: 30;
+	padding: var(--sa-t) var(--sa-r) var(--sa-b) var(--sa-l);
+}
+
+.memoria--celular .memoria__leitor-topo {
+	align-items: center;
+}
+
+.memoria--celular .memoria__texto {
+	padding: 14px 14px 28px;
 }
 
 /* ── Between: narrower columns ───────────────────────────────────────────────────────────── */

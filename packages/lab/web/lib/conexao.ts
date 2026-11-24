@@ -23,6 +23,7 @@ const ESPERA_MAX_MS = 10_000;
 export class Conexao {
 	readonly #ouvintes = new Set<() => void>();
 	readonly #ouvintesVoz = new Set<(quadro: QuadroVoz) => void>();
+	readonly #ouvintesMemoria = new Set<(timeId: string) => void>();
 	readonly #replicas = new Map<string, ReplicaChat>();
 	/** Subscribed chats and how many views hold each. */
 	readonly #assinados = new Map<string, number>();
@@ -47,6 +48,12 @@ export class Conexao {
 	ouvirVoz(ouvinte: (quadro: QuadroVoz) => void): () => void {
 		this.#ouvintesVoz.add(ouvinte);
 		return () => this.#ouvintesVoz.delete(ouvinte);
+	}
+
+	/** An Egregore team's memory changed (`{t:"memoria"}`). */
+	ouvirMemoria(ouvinte: (timeId: string) => void): () => void {
+		this.#ouvintesMemoria.add(ouvinte);
+		return () => this.#ouvintesMemoria.delete(ouvinte);
 	}
 
 	/** The chat's replica (created on first use; it fills once the chat is subscribed). */
@@ -139,6 +146,9 @@ export class Conexao {
 				break;
 			case "voz":
 				for (const ouvinte of this.#ouvintesVoz) ouvinte(mensagem);
+				break;
+			case "memoria":
+				for (const ouvinte of this.#ouvintesMemoria) ouvinte(mensagem.timeId);
 				break;
 		}
 	}

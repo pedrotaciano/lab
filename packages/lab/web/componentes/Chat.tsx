@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { api, caminhoDoChat } from "../lib/api";
 import { linhaDoChat, PALAVRA_DO_STATUS, useLab } from "../lib/contexto";
-import type { Autor, Estado, ResumoChat } from "../tipos";
+import type { AnexoEnviado, Autor, Estado, ResumoChat } from "../tipos";
 import { Composer } from "./Composer";
 import { Pergunta } from "./Pergunta";
 import { Rosto } from "./Rosto";
@@ -51,7 +51,7 @@ export function Chat({ chat, estado, celular }: Props): ReactNode {
 	const { conexao, eu, abrirChat } = useLab();
 	const replica = useMemo(() => conexao.replica(chat.id), [conexao, chat.id]);
 	const foto = useSyncExternalStore(replica.subscribe, replica.getSnapshot);
-	const [fila, setFila] = useState<{ texto: string; depoisDe: number }[]>([]);
+	const [fila, setFila] = useState<{ texto: string; mostra: string; comAnexos: boolean; depoisDe: number }[]>([]);
 	const [voz, setVoz] = useState(false);
 	const [erroEnvio, setErroEnvio] = useState<string | null>(null);
 
@@ -62,26 +62,41 @@ export function Chat({ chat, estado, celular }: Props): ReactNode {
 		setErroEnvio(null);
 	}, [chat.id]);
 
-	// A queued message leaves the queue once it lands in the transcript.
+	// A queued message leaves the queue once it lands in the transcript (with files, the text opens it).
 	useEffect(() => {
 		if (fila.length === 0) return;
 		const restantes = fila.filter(
-			item => !foto.entries.slice(item.depoisDe).some(entry => textoDoUsuario(entry)?.trim() === item.texto),
+			item =>
+				!foto.entries.slice(item.depoisDe).some(entry => {
+					const texto = textoDoUsuario(entry)?.trim();
+					return texto !== undefined && (item.comAnexos ? texto.startsWith(item.texto) : texto === item.texto);
+				}),
 		);
 		if (restantes.length !== fila.length) setFila(restantes);
 	}, [foto.entries, fila]);
 
 	const enviar = useCallback(
-		(texto: string): void => {
+		async (texto: string, anexos: readonly AnexoEnviado[] = []): Promise<boolean> => {
 			setErroEnvio(null);
-			if (foto.working) setFila(antes => [...antes, { texto, depoisDe: foto.entries.length }]);
-			api("POST", caminhoDoChat(chat.id, "/mensagem"), { texto }).catch((err: unknown) => {
+			const item = {
+				texto,
+				mostra: texto || anexos.map(anexo => anexo.nome).join(", "),
+				comAnexos: anexos.length > 0,
+				depoisDe: foto.entries.length,
+			};
+			if (foto.working) setFila(antes => [...antes, item]);
+			try {
+				await api("POST", caminhoDoChat(chat.id, "/mensagem"), { texto, anexos: anexos.map(anexo => anexo.id) });
+				return true;
+			} catch (err) {
 				setErroEnvio(err instanceof Error ? err.message : String(err));
-				setFila(antes => antes.filter(item => item.texto !== texto));
-			});
+				setFila(antes => antes.filter(outro => outro !== item));
+				return false;
+			}
 		},
 		[chat.id, foto.working, foto.entries.length],
 	);
+	const avisar = useCallback((mensagem: string) => setErroEnvio(mensagem), []);
 	const parar = (): void => {
 		void api("POST", caminhoDoChat(chat.id, "/parar")).catch(() => undefined);
 	};
@@ -196,23 +211,12 @@ export function Chat({ chat, estado, celular }: Props): ReactNode {
 						</button>
 					</div>
 				)}
-				{chat.status === "trabalhando" && (
-					<p className="chat__atividade" title={linha}>
-						<span className="pixspin" aria-hidden="true" />
-						<span className="chat__atividade-texto">{chat.atividade ?? "trabalhando"}</span>
-						{chat.todo && (
-							<span className="chat__todo">
-								{chat.todo.feitas} de {chat.todo.total}
-							</span>
-						)}
-					</p>
-				)}
 				{fila.length > 0 && (
 					<ul className="fila" aria-label="Na fila">
 						{fila.map((item, i) => (
-							<li key={`${i}-${item.texto}`} className="fila__item" title={item.texto}>
+							<li key={`${i}-${item.mostra}`} className="fila__item" title={item.mostra}>
 								<span className="fila__marca">na fila</span>
-								<span className="fila__texto">{item.texto}</span>
+								<span className="fila__texto">{item.mostra}</span>
 							</li>
 						))}
 					</ul>
@@ -221,7 +225,18 @@ export function Chat({ chat, estado, celular }: Props): ReactNode {
 				{foto.pergunta ? (
 					<Pergunta chatId={chat.id} pedido={foto.pergunta} aoResponder={reqId => replica.respondida(reqId)} />
 				) : (
-					<Composer trabalhando={foto.working} aoEnviar={enviar} aoParar={parar} />
+					<Composer
+						key={chat.id}
+						chat={chat}
+						trabalhando={foto.working}
+						andamento={
+							chat.status === "trabalhando" ? { texto: chat.atividade ?? "trabalhando", todo: chat.todo } : null
+						}
+						entries={foto.entries}
+						aoEnviar={enviar}
+						aoParar={parar}
+						aoErro={avisar}
+					/>
 				)}
 			</div>
 			{voz && <Voz chat={chat} aoFechar={() => setVoz(false)} />}

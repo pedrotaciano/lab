@@ -8,10 +8,13 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { isEnoent, logger } from "@oh-my-pi/pi-utils";
 import type { Server, ServerWebSocket } from "bun";
+import { Anexos } from "./anexos";
 import { ChatProcess, ErroLab, type SinalChat, sortearNome } from "./chat";
 import { type EnviarFrame, PonteChat } from "./frames";
+import { detectarEgregore, MemoriaEgregore } from "./memoria";
 import { type RegistroChat, Store } from "./store";
 import type { Autor, Estado, MensagemCliente, MensagemServidor, ResumoChat, Time } from "./tipos";
+import { Transcricao } from "./transcricao";
 
 const WEB = path.resolve(import.meta.dir, "../web");
 const ARTE = path.join(WEB, "arte");
@@ -33,10 +36,14 @@ export interface OpcoesServidor {
 
 export class Laboratorio {
 	readonly #store: Store;
+	readonly #anexos: Anexos;
+	readonly #transcricao = new Transcricao();
 	readonly #chats = new Map<string, ChatProcess>();
 	readonly #pontes = new Map<string, PonteChat>();
 	readonly #sockets = new Set<Socket>();
 	readonly #ausentes = new Set<string>();
+	/** Egregore teams (team id → its memory). */
+	readonly #memorias = new Map<string, MemoriaEgregore>();
 	#servidor: Server<DadosSocket> | null = null;
 	#dono: Autor | null = null;
 	#voz: boolean | null = null;
@@ -46,6 +53,7 @@ export class Laboratorio {
 
 	constructor(casa: string) {
 		this.#store = new Store(casa);
+		this.#anexos = new Anexos(casa);
 	}
 
 	get url(): string | null {
@@ -80,6 +88,9 @@ export class Laboratorio {
 	async parar(): Promise<void> {
 		clearInterval(this.#timerPastas);
 		clearTimeout(this.#timerEstado);
+		this.#transcricao.parar();
+		for (const memoria of this.#memorias.values()) memoria.fechar();
+		this.#memorias.clear();
 		for (const ponte of this.#pontes.values()) ponte.fechar();
 		this.#pontes.clear();
 		await Promise.all([...this.#chats.values()].map(chat => chat.encerrar()));
@@ -92,7 +103,7 @@ export class Laboratorio {
 		const pessoas = new Map<string, Autor>();
 		for (const socket of this.#sockets) pessoas.set(socket.data.autor.login, socket.data.autor);
 		return {
-			times: this.#store.times.map(time => (this.#ausentes.has(time.id) ? { ...time, ausente: true } : time)),
+			times: this.#store.times.map(time => this.#timeDoEstado(time)),
 			chats: this.#store.chats.map(registro => this.#chats.get(registro.id)!.resumo()),
 			pessoas: [...pessoas.values()],
 			voz: this.#voz,
@@ -109,7 +120,8 @@ export class Laboratorio {
 					if (req.method !== "GET" && req.method !== "DELETE" && !ehJson(req)) {
 						throw new ErroLab(415, "envie JSON (Content-Type: application/json)");
 					}
-					return Response.json(await handler(req, this.#autorDe(req, server), server));
+					const resultado = await handler(req, this.#autorDe(req, server), server);
+					return resultado instanceof Response ? resultado : Response.json(resultado);
 				} catch (err) {
 					return respostaDeErro(err);
 				}
@@ -119,6 +131,13 @@ export class Laboratorio {
 			const chat = this.#chats.get(id);
 			if (!chat) throw new ErroLab(404, "chat não encontrado");
 			return chat;
+		};
+		const memoriaDe = (req: Request): MemoriaEgregore => {
+			const id = (req as Bun.BunRequest<"/api/times/:id">).params.id;
+			if (!this.#store.time(id)) throw new ErroLab(404, "time não encontrado");
+			const memoria = this.#memorias.get(id);
+			if (!memoria) throw new ErroLab(404, "este time não é um Egregore");
+			return memoria;
 		};
 		return Bun.serve<DadosSocket>({
 			hostname: host,
@@ -137,6 +156,19 @@ export class Laboratorio {
 						return { ok: true };
 					}),
 				},
+				"/api/times/:id/memoria": {
+					GET: api(req => memoriaDe(req).listar(new URL(req.url).searchParams.get("q") ?? "")),
+				},
+				"/api/times/:id/memoria/arquivo": {
+					GET: api(
+						async req =>
+							new Response(await memoriaDe(req).arquivo(new URL(req.url).searchParams.get("caminho") ?? ""), {
+								headers: { "content-type": "text/markdown; charset=utf-8" },
+							}),
+					),
+				},
+				"/api/times/:id/memoria/sincronia": { GET: api(req => memoriaDe(req).sincronia()) },
+				"/api/times/:id/memoria/sincronizar": { POST: api(req => memoriaDe(req).sincronizar()) },
 				"/api/chats": { POST: api(async (req, autor) => this.#criarChat(await corpo(req), autor)) },
 				"/api/chats/:id": {
 					DELETE: api(async req => {
@@ -147,10 +179,49 @@ export class Laboratorio {
 				"/api/chats/:id/mensagem": {
 					POST: api(async (req, autor) => {
 						const chat = chatDe(req);
-						const { texto } = await corpo(req);
+						const { texto, anexos } = await corpo(req);
 						if (typeof texto !== "string") throw new ErroLab(400, "texto obrigatório");
-						await chat.enviar(texto, fromDe(autor));
+						const ids = Array.isArray(anexos) ? anexos.filter(id => typeof id === "string") : [];
+						const mensagem = await this.#anexos.mensagem(chat.id, texto, ids, autor.nome);
+						await chat.enviar(mensagem.texto, fromDe(autor), mensagem.imagens);
 						return { ok: true };
+					}),
+				},
+				"/api/chats/:id/anexos": {
+					POST: api(async req => this.#anexos.receber(chatDe(req).id, await corpo(req))),
+				},
+				"/api/chats/:id/modelos": { GET: api(async req => ({ modelos: await chatDe(req).modelos() })) },
+				"/api/chats/:id/modelo": {
+					POST: api(async req => {
+						const { provider, id } = await corpo(req);
+						if (typeof provider !== "string" || typeof id !== "string") {
+							throw new ErroLab(400, "provider e id obrigatórios");
+						}
+						return chatDe(req).mudarModelo(provider, id);
+					}),
+				},
+				"/api/chats/:id/esforco": {
+					POST: api(async req => {
+						const { nivel } = await corpo(req);
+						if (typeof nivel !== "string") throw new ErroLab(400, "nivel obrigatório");
+						return chatDe(req).mudarEsforco(nivel);
+					}),
+				},
+				"/api/chats/:id/compactar": {
+					POST: api(async req => {
+						const { instrucoes } = await corpo(req);
+						return chatDe(req).compactar(typeof instrucoes === "string" ? instrucoes.trim() : undefined);
+					}),
+				},
+				"/api/chats/:id/uso": { GET: api(async req => chatDe(req).uso()) },
+				"/api/transcricao": { GET: api(() => this.#transcricao.estado()) },
+				"/api/transcricao/aquecer": { POST: api(() => this.#transcricao.aquecer()) },
+				"/api/transcrever": {
+					POST: api(async req => {
+						const { dados, tipo } = await corpo(req);
+						if (typeof dados !== "string" || !dados) throw new ErroLab(400, "mande o áudio em `dados` (base64)");
+						const audio = Buffer.from(dados, "base64");
+						return { texto: await this.#transcricao.transcrever(audio, typeof tipo === "string" ? tipo : "audio/webm") };
 					}),
 				},
 				"/api/chats/:id/parar": {
@@ -302,12 +373,43 @@ export class Laboratorio {
 		let mudou = false;
 		for (const time of this.#store.times) {
 			const ausente = !(await ehPasta(time.pasta));
+			if (!ausente && (await this.#verificarEgregore(time))) mudou = true;
 			if (ausente === this.#ausentes.has(time.id)) continue;
 			if (ausente) this.#ausentes.add(time.id);
 			else this.#ausentes.delete(time.id);
 			mudou = true;
 		}
 		if (mudou) this.#agendarEstado();
+	}
+
+	/** Start or stop following the team's Egregore memory; true when the team became or stopped being one. */
+	async #verificarEgregore(time: Time): Promise<boolean> {
+		const info = await detectarEgregore(time.pasta);
+		const atual = this.#memorias.get(time.id);
+		if (atual && info && atual.info.org === info.org && atual.info.memoria === info.memoria) {
+			await atual.verificar();
+			return false;
+		}
+		atual?.fechar();
+		this.#memorias.delete(time.id);
+		if (info) {
+			const memoria = new MemoriaEgregore(time.pasta, info, () => this.#avisarMemoria(time.id));
+			this.#memorias.set(time.id, memoria);
+			await memoria.verificar();
+		}
+		return atual !== undefined || info !== null;
+	}
+
+	#avisarMemoria(timeId: string): void {
+		this.#servidor?.publish("estado", JSON.stringify({ t: "memoria", timeId } satisfies MensagemServidor));
+	}
+
+	#timeDoEstado(time: Time): Time {
+		return {
+			...time,
+			...(this.#ausentes.has(time.id) ? { ausente: true } : {}),
+			egregore: this.#memorias.get(time.id)?.info ?? null,
+		};
 	}
 
 	// ── teams & chats ───────────────────────────────────────────────────────
@@ -319,8 +421,9 @@ export class Laboratorio {
 		const nome = typeof dados.nome === "string" && dados.nome.trim() ? dados.nome.trim() : path.basename(pasta);
 		const time = this.#store.criarTime(nome, pasta);
 		this.#ausentes.delete(time.id);
+		await this.#verificarEgregore(time);
 		this.#agendarEstado();
-		return time;
+		return this.#timeDoEstado(time);
 	}
 
 	async #removerTime(id: string): Promise<void> {
@@ -329,6 +432,8 @@ export class Laboratorio {
 		// Forget the records first: estado() pairs every stored chat with its live process.
 		this.#store.removerTime(id);
 		this.#ausentes.delete(id);
+		this.#memorias.get(id)?.fechar();
+		this.#memorias.delete(id);
 		this.#agendarEstado();
 		await Promise.all(chats.map(chatId => this.#fecharChat(chatId)));
 	}

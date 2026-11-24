@@ -26,6 +26,8 @@ export async function api<T>(metodo: Metodo, caminho: string, corpo?: unknown): 
 		throw new ErroApi("Sem conexão", 0);
 	}
 	const texto = await resposta.text();
+	// A text answer (a memory file's Markdown) comes back as the string itself.
+	if (resposta.ok && !resposta.headers.get("content-type")?.includes("json")) return texto as T;
 	let dados: unknown = null;
 	if (texto) {
 		try {

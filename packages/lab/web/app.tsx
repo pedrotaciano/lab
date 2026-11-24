@@ -1,10 +1,12 @@
-// lab's page: the teams and chats on the left, the room or the task board in the middle, the open
-// chat on the right; on a phone (≤ 720 px) one screen at a time under the tabs Sala / Chat / Tarefas.
+// lab's page: the teams and chats on the left, the room, the task board or an Egregore team's memory in
+// the middle, the open chat on the right; on a phone (≤ 720 px) one screen at a time under the tabs
+// Sala / Chat / Tarefas (and Memória when a team is an Egregore).
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Chat, SemChat } from "./componentes/Chat";
 import { Sala } from "./componentes/Sala";
+import { Memoria } from "./componentes/Memoria";
 import { Tarefas } from "./componentes/Tarefas";
 import { AdicionarTime, Times } from "./componentes/Times";
 import { api } from "./lib/api";
@@ -14,7 +16,7 @@ import type { Autor } from "./tipos";
 import "./fontes/fontes.css";
 import "./estilo.css";
 
-type Aba = "sala" | "chat" | "tarefas";
+type Aba = "sala" | "chat" | "tarefas" | "memoria";
 
 const CELULAR = "(max-width: 720px)";
 /** The keyboard is up when the visual viewport loses this much of the window. */
@@ -118,7 +120,8 @@ function App(): ReactNode {
 	);
 
 	const esperando = estado.chats.filter(c => c.status === "esperando").length;
-	const visivel: Aba = !celular && aba === "chat" ? "sala" : aba;
+	const temEgregore = estado.times.some(time => time.egregore);
+	const visivel: Aba = (!celular && aba === "chat") || (aba === "memoria" && !temEgregore) ? "sala" : aba;
 	const banner = !foto.online && foto.offlineDesde !== null && (
 		<p className="banner" role="alert">
 			Sem conexão desde {horaCurta(foto.offlineDesde)}
@@ -176,11 +179,17 @@ function App(): ReactNode {
 								<Tarefas estado={estado} />
 							</div>
 						)}
+						{visivel === "memoria" && (
+							<div className="app__painel">
+								<Memoria estado={estado} celular />
+							</div>
+						)}
 					</main>
 					<nav className="abas abas--baixo" role="tablist" aria-label="Telas">
 						{abaBotao("sala", "Sala")}
 						{abaBotao("chat", "Chat")}
 						{abaBotao("tarefas", "Tarefas", esperando)}
+						{temEgregore && abaBotao("memoria", "Memória")}
 					</nav>
 				</div>
 			) : (
@@ -192,6 +201,7 @@ function App(): ReactNode {
 						<nav className="abas" role="tablist" aria-label="Vistas">
 							{abaBotao("sala", "Sala")}
 							{abaBotao("tarefas", "Tarefas", esperando)}
+							{temEgregore && abaBotao("memoria", "Memória")}
 						</nav>
 						{banner}
 						<div className="app__painel" hidden={visivel !== "sala"}>
@@ -200,6 +210,11 @@ function App(): ReactNode {
 						{visivel === "tarefas" && (
 							<div className="app__painel app__painel--rolar">
 								<Tarefas estado={estado} />
+							</div>
+						)}
+						{visivel === "memoria" && (
+							<div className="app__painel">
+								<Memoria estado={estado} celular={false} />
 							</div>
 						)}
 					</main>

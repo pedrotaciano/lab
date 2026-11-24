@@ -7,6 +7,7 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { RpcFrameDecoder } from "@oh-my-pi/pi-coding-agent/modes/rpc/rpc-frame";
+import type { RpcModelPickerResult } from "@oh-my-pi/pi-coding-agent/modes/rpc/rpc-model-picker";
 import type {
 	RpcCommand,
 	RpcExtensionUIRequest,
@@ -19,7 +20,16 @@ import { defaultFormData, fieldError, fieldQuestions, type HtmlFormData } from "
 import { parseHtmlForm, spansText } from "@oh-my-pi/pi-tui/html-form/parse";
 import { type ChildProcess, isRecord, logger, ptree, readJsonl } from "@oh-my-pi/pi-utils";
 import type { RegistroChat } from "./store";
-import type { LabUiRequest, ResumoChat, StatusChat, Time, TodoResumo } from "./tipos";
+import type {
+	ControlesChat,
+	LabUiRequest,
+	ModeloOpcao,
+	ResumoChat,
+	StatusChat,
+	Time,
+	TodoResumo,
+	UsoChat,
+} from "./tipos";
 
 /** HTTP-mappable failure: the server answers `{erro}` with `status`. */
 export class ErroLab extends Error {
@@ -34,6 +44,9 @@ export class ErroLab extends Error {
 
 /** Anything omp writes that is not a response to one of our commands. */
 export type FrameRpc = Record<string, unknown> & { type: string };
+
+/** An image the model receives with a prompt (RPC `images`). */
+export type Imagem = NonNullable<Extract<RpcCommand, { type: "prompt" }>["images"]>[number];
 
 /** What a chat tells its listeners. */
 export type SinalChat =
@@ -50,6 +63,8 @@ const CLI = Bun.resolveSync("@oh-my-pi/pi-coding-agent/cli", import.meta.dir);
 const PRAZO_PADRAO_MS = 30_000;
 const PRAZO_INICIO_MS = 90_000;
 const PRAZO_VOZ_MS = 60_000;
+/** omp summarizes with a model call: minutes on a long conversation. */
+const PRAZO_COMPACTAR_MS = 10 * 60_000;
 const RESPOSTA_CURTA = 280;
 
 const NOMES = [
@@ -148,6 +163,8 @@ export class ChatProcess {
 	#modelo: string | null = null;
 	#erro: string | null = null;
 	#estado: RpcSessionState | null = null;
+	/** A compaction runs (ours, or omp's own near the limit). */
+	#compactando = false;
 	#atualizadoEm = Date.now();
 
 	constructor(opcoes: OpcoesChat) {
@@ -197,6 +214,7 @@ export class ChatProcess {
 			ultimaResposta: this.#ultimaResposta,
 			modelo: this.#modelo,
 			erro: this.#erro,
+			controles: this.#controles(),
 			atualizadoEm: this.#atualizadoEm,
 		};
 	}
@@ -217,8 +235,11 @@ export class ChatProcess {
 		await this.garantir();
 	}
 
-	/** Send a message; a running turn gets it as a follow-up. `from` names a participant other than the owner. */
-	async enviar(texto: string, from?: string): Promise<void> {
+	/**
+	 * Send a message; a running turn gets it as a follow-up. `from` names a participant other than
+	 * the owner; `imagens` go to the model as images.
+	 */
+	async enviar(texto: string, from?: string, imagens: readonly Imagem[] = []): Promise<void> {
 		if (!texto.trim()) throw new ErroLab(400, "texto vazio");
 		const id = this.#novoId();
 		// Open before the omp starts, so the chat reads as working from the first moment.
@@ -233,6 +254,7 @@ export class ChatProcess {
 				type: "prompt",
 				message: texto,
 				streamingBehavior: "followUp",
+				...(imagens.length > 0 ? { images: [...imagens] } : {}),
 				...(from ? { from } : {}),
 			});
 			if (data?.agentInvoked === false) this.#fecharPrompt(id);
@@ -245,6 +267,73 @@ export class ChatProcess {
 	async parar(): Promise<void> {
 		if (!this.#processo) return;
 		await this.pedir({ type: "abort" });
+	}
+
+	/** omp's model picker (its order: the recent ones first), each row with its context window. */
+	async modelos(): Promise<ModeloOpcao[]> {
+		await this.garantir();
+		const [picker, disponiveis] = await Promise.all([
+			this.pedir<RpcModelPickerResult>({ type: "get_model_picker", limit: 500 }, PRAZO_INICIO_MS),
+			this.pedir<{ models: Array<{ provider: string; id: string; contextWindow?: number }> }>(
+				{ type: "get_available_models" },
+				PRAZO_INICIO_MS,
+			),
+		]);
+		const janelas = new Map(disponiveis.models.map(m => [`${m.provider}/${m.id}`, m.contextWindow ?? null]));
+		return picker.rows.map(row => ({
+			provider: row.provider,
+			id: row.id,
+			nome: row.name,
+			contexto: janelas.get(`${row.provider}/${row.id}`) ?? null,
+			esforcos: row.thinking ?? [],
+			atual: row.current === true,
+		}));
+	}
+
+	/** Switch the chat's model; omp's session keeps it (resume brings it back). */
+	async mudarModelo(provider: string, modelId: string): Promise<ResumoChat> {
+		await this.garantir();
+		await this.pedir({ type: "set_model", provider, modelId });
+		await this.#lerEstado();
+		return this.resumo();
+	}
+
+	/** Set the thinking selector (`auto` = padrão); only one the active model accepts. */
+	async mudarEsforco(nivel: string): Promise<ResumoChat> {
+		await this.garantir();
+		const aceitos = this.#estado?.thinkingLevels ?? [];
+		const level = aceitos.find(aceito => aceito === nivel);
+		if (!level) throw new ErroLab(400, "esforço indisponível neste modelo");
+		await this.pedir({ type: "set_thinking_level", level });
+		await this.#lerEstado();
+		return this.resumo();
+	}
+
+	/** Summarize the conversation now (omp's /compact); only while idle, a turn would be aborted. */
+	async compactar(instrucoes?: string): Promise<{ tokensAntes: number }> {
+		if (!this.#processo) throw new ErroLab(409, "chat parado");
+		if (this.#trabalhando() || this.#perguntas.size > 0) throw new ErroLab(409, "O chat está trabalhando.");
+		if (this.#compactando) throw new ErroLab(409, "Já está compactando.");
+		this.#compactando = true;
+		this.#mudou();
+		try {
+			const data = await this.pedir<{ tokensBefore: number }>(
+				{ type: "compact", ...(instrucoes ? { customInstructions: instrucoes } : {}) },
+				PRAZO_COMPACTAR_MS,
+			);
+			return { tokensAntes: data.tokensBefore };
+		} finally {
+			this.#compactando = false;
+			this.#mudou();
+			void this.#lerEstado().catch(() => {});
+		}
+	}
+
+	/** The whole session's cost and tokens so far. */
+	async uso(): Promise<UsoChat> {
+		await this.garantir();
+		const data = await this.pedir<{ cost: number; tokens: { total: number } }>({ type: "get_session_stats" });
+		return { custo: data.cost, tokens: data.tokens.total };
 	}
 
 	/** Answer a pending question; `valor` null cancels it. */
@@ -326,6 +415,24 @@ export class ChatProcess {
 		if (this.#trabalhando()) return "trabalhando";
 		if (this.#erro !== null) return "erro";
 		return this.#processo ? "livre" : "parado";
+	}
+
+	#controles(): ControlesChat | null {
+		const estado = this.#estado;
+		if (!estado) return null;
+		const uso = estado.contextUsage;
+		return {
+			modelo: estado.model
+				? { provider: estado.model.provider, id: estado.model.id, nome: estado.model.name || estado.model.id }
+				: null,
+			esforco: estado.configuredThinkingLevel ?? estado.thinkingLevel ?? null,
+			esforcos: estado.thinkingLevels ?? [],
+			contexto:
+				uso && uso.contextWindow > 0
+					? { tokens: uso.tokens, janela: uso.contextWindow, pct: Math.round((uso.tokens / uso.contextWindow) * 100) }
+					: null,
+			compactando: this.#compactando || estado.isCompacting,
+		};
 	}
 
 	#trabalhando(): boolean {
@@ -460,6 +567,7 @@ export class ChatProcess {
 		this.#promptsAbertos.clear();
 		this.#agenteRodando = false;
 		this.#atividade = null;
+		this.#compactando = false;
 		if (!esperado) this.#erro = `${motivo}${stderrFinal(processo)}`;
 		this.#emitir({ tipo: "fim" });
 		this.#mudou();
@@ -524,6 +632,18 @@ export class ChatProcess {
 				this.#mudou();
 				break;
 			case "model_changed":
+			case "thinking_level_changed":
+				void this.#lerEstado().catch(() => {});
+				break;
+			case "auto_compaction_start":
+			case "manual_compaction_start":
+				this.#compactando = true;
+				this.#mudou();
+				break;
+			case "auto_compaction_end":
+			case "manual_compaction_end":
+				this.#compactando = false;
+				this.#mudou();
 				void this.#lerEstado().catch(() => {});
 				break;
 			case "extension_ui_request":

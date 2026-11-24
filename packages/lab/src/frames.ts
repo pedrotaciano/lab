@@ -7,6 +7,7 @@
 import type { RpcSessionState } from "@oh-my-pi/pi-coding-agent/modes/rpc/rpc-types";
 import { logger } from "@oh-my-pi/pi-utils";
 import { type AgentEvent, COLLAB_PROTO, type SessionEntry, type SessionState } from "@oh-my-pi/pi-wire";
+import { entradaParaTela } from "./anexos";
 import type { ChatProcess, FrameRpc, SinalChat } from "./chat";
 import type { LabHostFrame } from "./tipos";
 
@@ -38,6 +39,7 @@ const GATILHOS_ENTRADA: Record<string, true> = {
 	turn_end: true,
 	agent_end: true,
 	auto_compaction_end: true,
+	manual_compaction_end: true,
 	model_changed: true,
 	thinking_level_changed: true,
 	prompt_result: true,
@@ -53,6 +55,7 @@ const GATILHOS_ESTADO: Record<string, true> = {
 	model_changed: true,
 	thinking_level_changed: true,
 	auto_compaction_end: true,
+	manual_compaction_end: true,
 	prompt_result: true,
 };
 
@@ -188,7 +191,9 @@ export class PonteChat {
 		const atuais = this.#entradas;
 		const desde = atuais?.at(-1)?.id;
 		if (atuais === null || desde === undefined) {
-			const { entries } = await this.#chat.pedir<{ entries: SessionEntry[] }>({ type: "get_entries" });
+			const entries = (await this.#chat.pedir<{ entries: SessionEntry[] }>({ type: "get_entries" })).entries.map(
+				entradaParaTela,
+			);
 			if (atuais !== null) for (const entry of entries) this.#transmitir({ t: "entry", entry });
 			this.#entradas = entries;
 			return;
@@ -207,7 +212,7 @@ export class PonteChat {
 			await this.#boasVindas([...this.#assinantes]);
 			return;
 		}
-		for (const entry of novas) {
+		for (const entry of novas.map(entradaParaTela)) {
 			atuais.push(entry);
 			this.#transmitir({ t: "entry", entry });
 		}
